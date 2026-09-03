@@ -71,16 +71,10 @@ export default function TrackOrderPage() {
               <p className="mt-1">
                 Número de guía: <strong>{result.trackingNumber}</strong>
               </p>
-              {result.carrier?.toUpperCase() === "ENVIA" && (
-                <a
-                  href={`https://www.envia.com/rastreo?guia=${encodeURIComponent(result.trackingNumber)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-block mt-2 text-rose underline"
-                >
-                  Rastrear en ENVIA →
-                </a>
-              )}
+              <p className="text-xs text-ink/50 mt-2">
+                Escríbenos por WhatsApp con este número si quieres que te
+                ayudemos a consultar el estado exacto de tu envío.
+              </p>
             </div>
           )}
 

@@ -13,21 +13,9 @@ const SOCIAL_LINKS = [
       </svg>
     ),
   },
-  {
-    label: "TikTok",
-    href: "https://www.tiktok.com/@paoutfit.col",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <path
-          d="M14 3v10.5a3 3 0 1 1-2-2.83V3h2Zm0 0c.2 2 1.7 3.6 3.7 3.9V9c-1.4 0-2.6-.5-3.7-1.3"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
-  },
+  // TikTok: PAOUTFIT sí tiene cuenta, pero todavía no tenemos el usuario
+  // correcto (es distinto al de Instagram) — se agrega el ícono cuando
+  // lo confirmen, para no enlazar a un usuario adivinado.
   {
     label: "WhatsApp",
     href: "https://wa.me/573114857551",
