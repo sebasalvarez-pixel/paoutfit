@@ -2,10 +2,19 @@ import { formatCop } from "@/lib/format";
 
 type Point = { date: string; revenueCop: number };
 
+// Se fija timeZone: "UTC" a propósito: las fechas son "solo calendario"
+// (2026-08-21) y sin esto, el servidor y el navegador podrían formatear
+// un día distinto según su zona horaria local, causando un error de
+// hidratación en React (el HTML no coincidiría entre los dos).
 const DAY_LABEL = new Intl.DateTimeFormat("es-CO", {
   day: "numeric",
   month: "short",
+  timeZone: "UTC",
 });
+
+function parseDay(date: string) {
+  return new Date(date + "T00:00:00Z");
+}
 
 export function RevenueChart({ data }: { data: Point[] }) {
   const width = 700;
@@ -67,6 +76,14 @@ export function RevenueChart({ data }: { data: Point[] }) {
               i === 0 || i === data.length - 1 || i === data.length - 8;
             return (
               <g key={d.date}>
+                {/*
+                  Nota: usamos el atributo `title`, NO un elemento hijo
+                  <title>. Next.js intercepta cualquier <title> como
+                  elemento en toda la página para su sistema de metadatos
+                  (aunque esté dentro de un <svg>), y lo deja vacío —
+                  causaba un error de hidratación. El atributo sí funciona
+                  como tooltip nativo del navegador.
+                */}
                 <rect
                   x={x}
                   y={barHeight > 0 ? y : height - paddingBottom - 2}
@@ -75,12 +92,8 @@ export function RevenueChart({ data }: { data: Point[] }) {
                   rx={Math.min(4, barWidth / 2)}
                   fill="#C26B7C"
                   opacity={d.revenueCop > 0 ? 1 : 0.15}
-                >
-                  <title>
-                    {DAY_LABEL.format(new Date(d.date + "T00:00:00"))}:{" "}
-                    {formatCop(d.revenueCop)}
-                  </title>
-                </rect>
+                  title={`${DAY_LABEL.format(parseDay(d.date))}: ${formatCop(d.revenueCop)}`}
+                />
                 {showLabel && (
                   <text
                     x={x + barWidth / 2}
@@ -90,7 +103,7 @@ export function RevenueChart({ data }: { data: Point[] }) {
                     fill="#2B2224"
                     opacity={0.5}
                   >
-                    {DAY_LABEL.format(new Date(d.date + "T00:00:00"))}
+                    {DAY_LABEL.format(parseDay(d.date))}
                   </text>
                 )}
               </g>
