@@ -40,6 +40,33 @@ export function getCategories() {
   return ["Vestidos", "Enterizos", "Tops"] as const;
 }
 
+/**
+ * Una foto representativa por categoría (para las tarjetas del home).
+ * Devuelve null si esa categoría todavía no tiene ningún producto con
+ * foto — la tarjeta se ve bien de las dos formas.
+ */
+export async function getCategoryImages() {
+  const categories = getCategories();
+  const result: Record<string, { storagePath: string; alt: string } | null> = {};
+
+  for (const category of categories) {
+    const products = await getProductsByCategory(category);
+    let found: { storagePath: string; alt: string } | null = null;
+    for (const product of products) {
+      for (const variant of product.variants) {
+        if (variant.images[0]) {
+          found = { storagePath: variant.images[0].storagePath, alt: product.title };
+          break;
+        }
+      }
+      if (found) break;
+    }
+    result[category] = found;
+  }
+
+  return result;
+}
+
 /** Primera imagen disponible de un producto (para tarjetas de catálogo). */
 export function getPrimaryImage(
   product: Awaited<ReturnType<typeof getPublishedProducts>>[number],

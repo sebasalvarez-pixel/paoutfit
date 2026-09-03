@@ -63,7 +63,13 @@ export const useCartStore = create<CartState>()(
       open: () => set({ isOpen: true }),
       close: () => set({ isOpen: false }),
     }),
-    { name: "paoutfit-cart" },
+    {
+      name: "paoutfit-cart",
+      // Solo persistimos los productos del carrito. Si "isOpen" se
+      // guardara también, el carrito quedaría abierto para siempre
+      // (incluso al navegar a otra página o recargar).
+      partialize: (state) => ({ items: state.items }),
+    },
   ),
 );
 

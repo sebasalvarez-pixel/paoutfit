@@ -1,12 +1,18 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getBestSellers, getCategories, getHeroImage } from "@/lib/products";
+import {
+  getBestSellers,
+  getCategories,
+  getCategoryImages,
+  getHeroImage,
+} from "@/lib/products";
 import { ProductCard } from "@/components/storefront/ProductCard";
 
 export default async function HomePage() {
   const categories = getCategories();
   const featured = await getBestSellers(4);
   const heroImage = await getHeroImage();
+  const categoryImages = await getCategoryImages();
 
   return (
     <div>
@@ -16,7 +22,7 @@ export default async function HomePage() {
           <p className="uppercase tracking-[0.3em] text-xs text-rose">
             Move. Feel. Be You.
           </p>
-          <h1 className="font-heading text-5xl lg:text-6xl leading-tight text-ink">
+          <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl leading-tight text-ink">
             Ropa deportiva para moverte como eres
           </h1>
           <p className="text-ink/70 max-w-md">
@@ -46,17 +52,38 @@ export default async function HomePage() {
 
       {/* Categorías */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 grid sm:grid-cols-3 gap-6">
-        {categories.map((cat) => (
-          <Link
-            key={cat}
-            href={`/coleccion/${cat.toLowerCase()}`}
-            className="group relative aspect-[4/5] bg-blush overflow-hidden flex items-end"
-          >
-            <span className="relative z-10 w-full text-center pb-6 font-heading text-2xl text-ink group-hover:text-rose transition-colors">
-              {cat}
-            </span>
-          </Link>
-        ))}
+        {categories.map((cat) => {
+          const image = categoryImages[cat];
+          return (
+            <Link
+              key={cat}
+              href={`/coleccion/${cat.toLowerCase()}`}
+              className="group relative h-64 sm:h-80 overflow-hidden flex items-end bg-blush"
+            >
+              {image && (
+                <>
+                  <Image
+                    src={image.storagePath}
+                    alt={image.alt}
+                    fill
+                    sizes="(min-width: 640px) 33vw, 100vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink/50 via-transparent to-transparent" />
+                </>
+              )}
+              <span
+                className={`relative z-10 w-full text-center pb-6 font-heading text-2xl transition-colors ${
+                  image
+                    ? "text-white drop-shadow"
+                    : "text-ink group-hover:text-rose"
+                }`}
+              >
+                {cat}
+              </span>
+            </Link>
+          );
+        })}
       </section>
 
       {/* Destacados */}
