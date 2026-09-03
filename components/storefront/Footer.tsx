@@ -9,9 +9,9 @@ export function Footer() {
           <Image
             src="/brand/isotipo.png"
             alt="PAOUTFIT"
-            width={48}
-            height={48}
-            className="h-10 w-auto mb-4"
+            width={35}
+            height={40}
+            className="mb-4"
           />
           <p className="text-sm tracking-widest uppercase text-blush/70">
             Move. Feel. Be You.

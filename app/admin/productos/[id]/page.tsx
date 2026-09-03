@@ -105,48 +105,52 @@ export default async function EditProductPage({
               product.handle,
             );
             return (
-              <form
+              <div
                 key={variant.id}
-                action={boundUpdateVariant}
                 className="bg-white border border-ink/10 rounded p-4 flex flex-wrap items-end gap-4"
               >
-                <div>
-                  <p className="text-xs text-ink/50">Color</p>
-                  <p className="text-sm font-medium">{variant.colorName}</p>
-                  <p className="text-[11px] text-ink/40">{variant.sku}</p>
-                </div>
-                <div>
-                  <label className="text-xs text-ink/60">Precio (COP)</label>
-                  <input
-                    name="priceCop"
-                    type="number"
-                    defaultValue={variant.priceCop}
-                    className="w-32 border border-ink/20 px-2 py-1 mt-1 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-ink/60">Inventario</label>
-                  <input
-                    name="inventoryQty"
-                    type="number"
-                    defaultValue={variant.inventoryQty}
-                    className="w-24 border border-ink/20 px-2 py-1 mt-1 text-sm"
-                  />
-                </div>
-                <label className="flex items-center gap-2 text-xs">
-                  <input
-                    type="checkbox"
-                    name="isActive"
-                    defaultChecked={variant.isActive}
-                  />
-                  Activo
-                </label>
-                <button
-                  type="submit"
-                  className="text-xs uppercase text-rose border border-rose px-3 py-2 hover:bg-rose hover:text-white transition-colors"
+                <form
+                  action={boundUpdateVariant}
+                  className="flex flex-wrap items-end gap-4"
                 >
-                  Guardar
-                </button>
+                  <div>
+                    <p className="text-xs text-ink/50">Color</p>
+                    <p className="text-sm font-medium">{variant.colorName}</p>
+                    <p className="text-[11px] text-ink/40">{variant.sku}</p>
+                  </div>
+                  <div>
+                    <label className="text-xs text-ink/60">Precio (COP)</label>
+                    <input
+                      name="priceCop"
+                      type="number"
+                      defaultValue={variant.priceCop}
+                      className="w-32 border border-ink/20 px-2 py-1 mt-1 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-ink/60">Inventario</label>
+                    <input
+                      name="inventoryQty"
+                      type="number"
+                      defaultValue={variant.inventoryQty}
+                      className="w-24 border border-ink/20 px-2 py-1 mt-1 text-sm"
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 text-xs">
+                    <input
+                      type="checkbox"
+                      name="isActive"
+                      defaultChecked={variant.isActive}
+                    />
+                    Activo
+                  </label>
+                  <button
+                    type="submit"
+                    className="text-xs uppercase text-rose border border-rose px-3 py-2 hover:bg-rose hover:text-white transition-colors"
+                  >
+                    Guardar
+                  </button>
+                </form>
                 <div className="flex gap-1 ml-auto">
                   {variant.images.map((img) => (
                     <div key={img.id} className="relative h-14 w-12 group">
@@ -168,7 +172,7 @@ export default async function EditProductPage({
                     </div>
                   ))}
                 </div>
-              </form>
+              </div>
             );
           })}
         </div>

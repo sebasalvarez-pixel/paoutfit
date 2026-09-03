@@ -19,7 +19,7 @@ export default function AdminLayout({
           <Image
             src="/brand/isotipo.png"
             alt="PAOUTFIT"
-            width={28}
+            width={25}
             height={28}
           />
           <span className="font-heading text-lg text-ink">Panel</span>

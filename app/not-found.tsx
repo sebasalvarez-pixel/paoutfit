@@ -7,7 +7,7 @@ export default function NotFound() {
       <Image
         src="/brand/isotipo.png"
         alt="PAOUTFIT"
-        width={56}
+        width={49}
         height={56}
       />
       <h1 className="font-heading text-4xl text-ink">Página no encontrada</h1>
