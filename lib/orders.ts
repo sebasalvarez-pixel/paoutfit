@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/resend";
 import { OrderConfirmation } from "@/emails/OrderConfirmation";
+import { NewOrderNotification } from "@/emails/NewOrderNotification";
 import type { OrderStatus } from "@/app/generated/prisma/client";
 
 export function generateOrderNumber() {
@@ -67,20 +68,40 @@ export async function applyOrderStatusTransition(params: {
   });
 
   if (params.status === "paid" && !alreadyInStatus) {
+    const itemsForEmail = order.items.map((i) => ({
+      title: i.productTitle,
+      color: i.colorName,
+      quantity: i.quantity,
+      unitPriceCop: i.unitPriceCop,
+    }));
+
+    // Confirmación para la clienta que compró.
     await sendEmail({
       to: order.customerEmail,
       subject: `Confirmamos tu pedido ${order.orderNumber} — PAOUTFIT`,
       react: OrderConfirmation({
         orderNumber: order.orderNumber,
         customerName: order.customerName,
-        items: order.items.map((i) => ({
-          title: i.productTitle,
-          color: i.colorName,
-          quantity: i.quantity,
-          unitPriceCop: i.unitPriceCop,
-        })),
+        items: itemsForEmail,
         totalCop: order.totalCop,
       }),
     });
+
+    // Aviso de nueva venta para la dueña de la tienda (mientras no existe
+    // el panel admin, este correo es la forma en que ella se entera).
+    if (process.env.OWNER_NOTIFICATION_EMAIL) {
+      await sendEmail({
+        to: process.env.OWNER_NOTIFICATION_EMAIL,
+        subject: `💰 Nueva venta: ${order.orderNumber}`,
+        react: NewOrderNotification({
+          orderNumber: order.orderNumber,
+          customerName: order.customerName,
+          customerEmail: order.customerEmail,
+          customerPhone: order.customerPhone,
+          items: itemsForEmail,
+          totalCop: order.totalCop,
+        }),
+      });
+    }
   }
 }

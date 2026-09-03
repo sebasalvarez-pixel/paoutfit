@@ -60,6 +60,12 @@ export function Header() {
         </Link>
 
         <div className="flex items-center gap-5">
+          <Link
+            href="/rastrear-pedido"
+            className="hidden sm:inline text-xs tracking-wide uppercase text-ink/70 hover:text-rose transition-colors"
+          >
+            Mi pedido
+          </Link>
           <button
             type="button"
             aria-label="Ver carrito"
@@ -100,6 +106,13 @@ export function Header() {
               {cat.label}
             </Link>
           ))}
+          <Link
+            href="/rastrear-pedido"
+            onClick={() => setMenuOpen(false)}
+            className="text-ink/80 hover:text-rose transition-colors"
+          >
+            Mi pedido
+          </Link>
         </nav>
       )}
     </header>
