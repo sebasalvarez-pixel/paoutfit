@@ -81,3 +81,34 @@ export async function getDashboardStats() {
     statusBreakdown,
   };
 }
+
+/** Ingresos por día, últimos `days` días (incluye días sin ventas en $0). */
+export async function getRevenueByDay(days = 14) {
+  const since = new Date();
+  since.setHours(0, 0, 0, 0);
+  since.setDate(since.getDate() - (days - 1));
+
+  const orders = await prisma.order.findMany({
+    where: {
+      status: { in: [...REVENUE_STATUSES] },
+      createdAt: { gte: since },
+    },
+    select: { createdAt: true, totalCop: true },
+  });
+
+  const byDay = new Map<string, number>();
+  for (let i = 0; i < days; i++) {
+    const d = new Date(since);
+    d.setDate(d.getDate() + i);
+    byDay.set(d.toISOString().slice(0, 10), 0);
+  }
+  for (const order of orders) {
+    const key = order.createdAt.toISOString().slice(0, 10);
+    byDay.set(key, (byDay.get(key) ?? 0) + order.totalCop);
+  }
+
+  return Array.from(byDay.entries()).map(([date, revenueCop]) => ({
+    date,
+    revenueCop,
+  }));
+}

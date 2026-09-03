@@ -1,11 +1,15 @@
 import Link from "next/link";
-import { getDashboardStats } from "@/lib/admin-data";
+import { getDashboardStats, getRevenueByDay } from "@/lib/admin-data";
 import { formatCop } from "@/lib/format";
 import { StatCard } from "@/components/admin/StatCard";
 import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
+import { RevenueChart } from "@/components/admin/RevenueChart";
 
 export default async function AdminDashboardPage() {
-  const stats = await getDashboardStats();
+  const [stats, revenueByDay] = await Promise.all([
+    getDashboardStats(),
+    getRevenueByDay(14),
+  ]);
 
   return (
     <div className="space-y-10">
@@ -31,6 +35,8 @@ export default async function AdminDashboardPage() {
           value={formatCop(stats.avgOrderValueCop)}
         />
       </div>
+
+      <RevenueChart data={revenueByDay} />
 
       <div className="grid lg:grid-cols-2 gap-8">
         <div>
