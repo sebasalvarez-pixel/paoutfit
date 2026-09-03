@@ -22,6 +22,9 @@ const checkoutSchema = z.object({
   city: z.string().min(2, "Ingresa tu ciudad."),
   department: z.string().min(2, "Ingresa tu departamento."),
   discountCode: z.string().optional(),
+  acceptedDataPolicy: z.boolean().refine((v) => v === true, {
+    message: "Debes aceptar la política de tratamiento de datos para continuar.",
+  }),
   items: z
     .array(
       z.object({
@@ -143,6 +146,7 @@ export async function createOrder(
       totalCop,
       discountCodeId,
       paymentProvider: "wompi",
+      dataPolicyAcceptedAt: new Date(),
       ...attribution,
       items: { create: orderItemsData },
     },

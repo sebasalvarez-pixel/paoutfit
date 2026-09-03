@@ -63,6 +63,27 @@ export default function TrackOrderPage() {
           </p>
           <p className="text-lg text-rose mt-1">{result.statusLabel}</p>
 
+          {result.trackingNumber && (
+            <div className="mt-4 bg-white p-4 text-sm">
+              <p className="text-ink/60">
+                Enviado con <strong>{result.carrier ?? "ENVIA"}</strong>
+              </p>
+              <p className="mt-1">
+                Número de guía: <strong>{result.trackingNumber}</strong>
+              </p>
+              {result.carrier?.toUpperCase() === "ENVIA" && (
+                <a
+                  href={`https://www.envia.com/rastreo?guia=${encodeURIComponent(result.trackingNumber)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-block mt-2 text-rose underline"
+                >
+                  Rastrear en ENVIA →
+                </a>
+              )}
+            </div>
+          )}
+
           <ul className="mt-4 divide-y divide-ink/10">
             {result.items.map((item, i) => (
               <li key={i} className="py-2 text-sm flex justify-between">
@@ -79,6 +100,23 @@ export default function TrackOrderPage() {
           </div>
         </div>
       )}
+
+      <p className="text-center text-xs text-ink/50 mt-10">
+        ¿Necesitas ayuda con tu pedido? Escríbenos por{" "}
+        <a
+          href="https://wa.me/573114857551"
+          target="_blank"
+          rel="noreferrer"
+          className="text-rose underline"
+        >
+          WhatsApp
+        </a>{" "}
+        o revisa nuestra{" "}
+        <a href="/informacion" className="text-rose underline">
+          página de información
+        </a>
+        .
+      </p>
     </div>
   );
 }

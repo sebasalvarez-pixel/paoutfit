@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatCop } from "@/lib/format";
 import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
-import { changeOrderStatus } from "./actions";
+import { changeOrderStatus, markAsShipped } from "./actions";
 
 const STATUSES = [
   "pending",
@@ -37,6 +37,7 @@ export default async function AdminOrderDetailPage({
   };
 
   const boundChangeStatus = changeOrderStatus.bind(null, order.id);
+  const boundMarkAsShipped = markAsShipped.bind(null, order.id);
 
   return (
     <div className="max-w-3xl space-y-8">
@@ -107,6 +108,49 @@ export default async function AdminOrderDetailPage({
             <span>{formatCop(order.totalCop)}</span>
           </div>
         </div>
+      </div>
+
+      <div className="bg-white border border-ink/10 rounded p-5">
+        <h2 className="text-xs uppercase tracking-wide text-ink/50 mb-3">
+          Despacho
+        </h2>
+        {order.fulfilledAt && (
+          <p className="text-sm text-emerald-700 mb-3">
+            ✓ Enviado el {order.fulfilledAt.toLocaleString("es-CO")}
+          </p>
+        )}
+        <form
+          action={boundMarkAsShipped}
+          className="flex flex-wrap items-end gap-3"
+        >
+          <div>
+            <label className="text-xs text-ink/60">Transportadora</label>
+            <input
+              name="carrier"
+              defaultValue={order.carrier ?? "ENVIA"}
+              className="border border-ink/20 px-3 py-2 text-sm mt-1"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-ink/60"># de guía</label>
+            <input
+              name="trackingNumber"
+              defaultValue={order.trackingNumber ?? ""}
+              placeholder="Ej. 123456789"
+              className="border border-ink/20 px-3 py-2 text-sm mt-1"
+            />
+          </div>
+          <button
+            type="submit"
+            className="bg-rose text-white px-6 py-2 text-sm uppercase tracking-wide hover:bg-plum transition-colors"
+          >
+            Guardar y marcar como enviado
+          </button>
+        </form>
+        <p className="text-xs text-ink/40 mt-2">
+          Al guardar, el pedido pasa a &quot;fulfilled&quot; y el cliente
+          verá la guía en la página de rastreo.
+        </p>
       </div>
 
       <div className="bg-white border border-ink/10 rounded p-5">

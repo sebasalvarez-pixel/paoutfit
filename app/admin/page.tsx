@@ -1,13 +1,29 @@
 import Link from "next/link";
-import { getDashboardStats, getRevenueByDay } from "@/lib/admin-data";
+import {
+  getDashboardStats,
+  getRevenueByDay,
+  RANGE_LABEL,
+  type DashboardRange,
+} from "@/lib/admin-data";
 import { formatCop } from "@/lib/format";
 import { StatCard } from "@/components/admin/StatCard";
 import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
 import { RevenueChart } from "@/components/admin/RevenueChart";
 
-export default async function AdminDashboardPage() {
+const RANGES: DashboardRange[] = ["today", "week", "month", "all"];
+
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string }>;
+}) {
+  const { range: rawRange } = await searchParams;
+  const range: DashboardRange = RANGES.includes(rawRange as DashboardRange)
+    ? (rawRange as DashboardRange)
+    : "month";
+
   const [stats, revenueByDay] = await Promise.all([
-    getDashboardStats(),
+    getDashboardStats(range),
     getRevenueByDay(14),
   ]);
 
@@ -20,9 +36,45 @@ export default async function AdminDashboardPage() {
         </p>
       </div>
 
+      {stats.pendingDispatchToday > 0 && (
+        <Link
+          href="/admin/pedidos?dispatch=today"
+          className="block bg-rose text-white px-5 py-4 rounded hover:bg-plum transition-colors"
+        >
+          📦 Tienes <strong>{stats.pendingDispatchToday}</strong> pedido
+          {stats.pendingDispatchToday === 1 ? "" : "s"} pagado
+          {stats.pendingDispatchToday === 1 ? "" : "s"} hoy listo
+          {stats.pendingDispatchToday === 1 ? "" : "s"} para despachar
+          {stats.pendingDispatchTotal > stats.pendingDispatchToday && (
+            <>
+              {" "}
+              (y {stats.pendingDispatchTotal - stats.pendingDispatchToday} más
+              de días anteriores)
+            </>
+          )}
+          {" "}→
+        </Link>
+      )}
+
+      <div className="flex gap-2 text-xs">
+        {RANGES.map((r) => (
+          <Link
+            key={r}
+            href={`/admin?range=${r}`}
+            className={`px-3 py-1 rounded-full border ${
+              range === r
+                ? "bg-rose text-white border-rose"
+                : "border-ink/20 text-ink/60"
+            }`}
+          >
+            {RANGE_LABEL[r]}
+          </Link>
+        ))}
+      </div>
+
       <div className="grid sm:grid-cols-3 gap-4">
         <StatCard
-          label="Ingresos totales"
+          label={`Ingresos — ${RANGE_LABEL[range].toLowerCase()}`}
           value={formatCop(stats.totalRevenueCop)}
           hint="Pedidos pagados o enviados"
         />
@@ -88,7 +140,9 @@ export default async function AdminDashboardPage() {
 
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-heading text-xl text-ink">Pedidos recientes</h2>
+          <h2 className="font-heading text-xl text-ink">
+            Pedidos recientes {range !== "all" && `— ${RANGE_LABEL[range].toLowerCase()}`}
+          </h2>
           <Link
             href="/admin/pedidos"
             className="text-sm text-rose hover:underline"
@@ -129,7 +183,7 @@ export default async function AdminDashboardPage() {
               {stats.recentOrders.length === 0 && (
                 <tr>
                   <td colSpan={4} className="px-4 py-6 text-center text-ink/50">
-                    Todavía no hay pedidos.
+                    No hay pedidos en este período.
                   </td>
                 </tr>
               )}

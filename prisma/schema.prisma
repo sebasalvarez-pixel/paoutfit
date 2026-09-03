@@ -108,6 +108,10 @@ model Order {
   utmCampaign      String?         @map("utm_campaign")
   referrer         String?
   landingPath      String?         @map("landing_path")
+  carrier          String?         @default("ENVIA")
+  trackingNumber   String?         @map("tracking_number")
+  fulfilledAt      DateTime?       @map("fulfilled_at")
+  dataPolicyAcceptedAt DateTime?   @map("data_policy_accepted_at")
   createdAt        DateTime        @default(now()) @map("created_at")
   updatedAt        DateTime        @updatedAt @map("updated_at")
 

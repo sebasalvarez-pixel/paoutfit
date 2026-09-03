@@ -3,18 +3,50 @@ import { prisma } from "@/lib/prisma";
 
 const REVENUE_STATUSES = ["paid", "fulfilled"] as const;
 
-export async function getDashboardStats() {
+export type DashboardRange = "today" | "week" | "month" | "all";
+
+export function rangeStart(range: DashboardRange): Date | null {
+  const now = new Date();
+  if (range === "today") {
+    now.setHours(0, 0, 0, 0);
+    return now;
+  }
+  if (range === "week") {
+    const day = now.getDay(); // 0 = domingo
+    const diffToMonday = day === 0 ? 6 : day - 1;
+    now.setDate(now.getDate() - diffToMonday);
+    now.setHours(0, 0, 0, 0);
+    return now;
+  }
+  if (range === "month") {
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  }
+  return null; // "all"
+}
+
+export const RANGE_LABEL: Record<DashboardRange, string> = {
+  today: "Hoy",
+  week: "Esta semana",
+  month: "Este mes",
+  all: "Todo",
+};
+
+export async function getDashboardStats(range: DashboardRange = "month") {
+  const since = rangeStart(range);
+  const dateFilter = since ? { createdAt: { gte: since } } : {};
+
   const [revenueAgg, orders, recentOrders, statusCounts] = await Promise.all([
     prisma.order.aggregate({
-      where: { status: { in: [...REVENUE_STATUSES] } },
+      where: { status: { in: [...REVENUE_STATUSES] }, ...dateFilter },
       _sum: { totalCop: true },
       _count: true,
     }),
     prisma.order.findMany({
-      where: { status: { in: [...REVENUE_STATUSES] } },
+      where: { status: { in: [...REVENUE_STATUSES] }, ...dateFilter },
       select: { utmSource: true, referrer: true },
     }),
     prisma.order.findMany({
+      where: dateFilter,
       orderBy: { createdAt: "desc" },
       take: 8,
       select: {
@@ -28,6 +60,7 @@ export async function getDashboardStats() {
     }),
     prisma.order.groupBy({
       by: ["status"],
+      where: dateFilter,
       _count: true,
     }),
   ]);
@@ -57,7 +90,7 @@ export async function getDashboardStats() {
 
   const topProductsRaw = await prisma.orderItem.groupBy({
     by: ["productTitle"],
-    where: { order: { status: { in: [...REVENUE_STATUSES] } } },
+    where: { order: { status: { in: [...REVENUE_STATUSES] }, ...dateFilter } },
     _sum: { quantity: true },
     orderBy: { _sum: { quantity: "desc" } },
     take: 5,
@@ -71,6 +104,16 @@ export async function getDashboardStats() {
     statusCounts.map((s) => [s.status, s._count]),
   );
 
+  // Pedidos pagados que TODAVÍA no se han despachado hoy — la cola de
+  // despacho del día, sin mezclarse con pedidos de otros días.
+  const todayStart = rangeStart("today")!;
+  const pendingDispatchToday = await prisma.order.count({
+    where: { status: "paid", createdAt: { gte: todayStart } },
+  });
+  const pendingDispatchTotal = await prisma.order.count({
+    where: { status: "paid" },
+  });
+
   return {
     totalRevenueCop,
     paidOrderCount,
@@ -79,6 +122,8 @@ export async function getDashboardStats() {
     trafficSources,
     topProducts,
     statusBreakdown,
+    pendingDispatchToday,
+    pendingDispatchTotal,
   };
 }
 

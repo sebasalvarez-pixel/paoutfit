@@ -25,6 +25,9 @@ export type LookupResult =
       totalCop: number;
       createdAt: string;
       items: { title: string; color: string; quantity: number }[];
+      carrier: string | null;
+      trackingNumber: string | null;
+      fulfilledAt: string | null;
     }
   | { ok: false; error: string };
 
@@ -65,5 +68,8 @@ export async function lookupOrder(input: {
       color: i.colorName,
       quantity: i.quantity,
     })),
+    carrier: order.carrier,
+    trackingNumber: order.trackingNumber,
+    fulfilledAt: order.fulfilledAt ? order.fulfilledAt.toISOString() : null,
   };
 }

@@ -49,6 +49,7 @@ export default function CheckoutPage() {
         city: String(form.get("city") ?? ""),
         department: String(form.get("department") ?? ""),
         discountCode: String(form.get("discountCode") ?? "") || undefined,
+        acceptedDataPolicy: form.get("acceptedDataPolicy") === "on",
         items: items.map((i) => ({
           variantId: i.variantId,
           quantity: i.quantity,
@@ -163,6 +164,26 @@ export default function CheckoutPage() {
             className="w-full border border-ink/20 px-3 py-2 bg-white uppercase"
           />
         </section>
+
+        <label className="flex items-start gap-2 text-xs text-ink/70">
+          <input
+            type="checkbox"
+            name="acceptedDataPolicy"
+            required
+            className="mt-0.5"
+          />
+          <span>
+            He leído y acepto la{" "}
+            <a
+              href="/tratamiento-de-datos"
+              target="_blank"
+              className="text-rose underline"
+            >
+              política de tratamiento de datos personales
+            </a>
+            .
+          </span>
+        </label>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
