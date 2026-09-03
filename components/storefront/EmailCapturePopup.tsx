@@ -6,7 +6,11 @@ import { subscribeEmail } from "@/lib/actions/subscribe";
 
 const STORAGE_KEY = "paoutfit-popup-dismissed";
 
-export function EmailCapturePopup() {
+export function EmailCapturePopup({
+  image,
+}: {
+  image: { storagePath: string; alt: string } | null;
+}) {
   const [visible, setVisible] = useState(false);
   const [email, setEmail] = useState("");
   const [state, setState] = useState<
@@ -53,13 +57,15 @@ export function EmailCapturePopup() {
         </button>
 
         <div className="relative hidden sm:block bg-blush">
-          <Image
-            src="/products/nova-dress/nova-dress-vinotinto-frente.jpg"
-            alt="PAOUTFIT"
-            fill
-            sizes="200px"
-            className="object-cover"
-          />
+          {image && (
+            <Image
+              src={image.storagePath}
+              alt={image.alt}
+              fill
+              sizes="200px"
+              className="object-cover"
+            />
+          )}
         </div>
 
         <div className="p-8 flex flex-col justify-center text-center sm:text-left">

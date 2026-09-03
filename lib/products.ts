@@ -99,3 +99,21 @@ export async function getBestSellers(limit = 4) {
   const published = await getPublishedProducts();
   return published.filter((p) => p.variants.some((v) => v.images.length > 0)).slice(0, limit);
 }
+
+/**
+ * Imagen para el hero del home y el popup de descuento. Se elige en vivo
+ * entre los productos más vendidos (o cualquier producto con foto) en vez
+ * de apuntar a un archivo fijo — así nunca queda una imagen rota si esa
+ * foto en particular se borra desde el panel admin.
+ */
+export async function getHeroImage() {
+  const bestSellers = await getBestSellers(6);
+  for (const product of bestSellers) {
+    for (const variant of product.variants) {
+      if (variant.images[0]) {
+        return { storagePath: variant.images[0].storagePath, alt: product.title };
+      }
+    }
+  }
+  return null;
+}

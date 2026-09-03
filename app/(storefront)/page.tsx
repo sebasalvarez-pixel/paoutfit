@@ -1,11 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getBestSellers, getCategories } from "@/lib/products";
+import { getBestSellers, getCategories, getHeroImage } from "@/lib/products";
 import { ProductCard } from "@/components/storefront/ProductCard";
 
 export default async function HomePage() {
   const categories = getCategories();
   const featured = await getBestSellers(4);
+  const heroImage = await getHeroImage();
 
   return (
     <div>
@@ -29,15 +30,17 @@ export default async function HomePage() {
             Ver colección
           </Link>
         </div>
-        <div className="order-1 lg:order-2 relative min-h-[45vh]">
-          <Image
-            src="/products/nova-dress/nova-dress-vinotinto-frente.jpg"
-            alt="PAOUTFIT"
-            fill
-            sizes="(min-width: 1024px) 50vw, 100vw"
-            priority
-            className="object-cover"
-          />
+        <div className="order-1 lg:order-2 relative min-h-[45vh] bg-blush">
+          {heroImage && (
+            <Image
+              src={heroImage.storagePath}
+              alt={heroImage.alt}
+              fill
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              priority
+              className="object-cover"
+            />
+          )}
         </div>
       </section>
 
