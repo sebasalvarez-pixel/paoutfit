@@ -1,0 +1,107 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
+import { useCartStore, cartCount } from "@/lib/cart-store";
+
+const CATEGORIES = [
+  { label: "Vestidos", href: "/coleccion/vestidos" },
+  { label: "Enterizos", href: "/coleccion/enterizos" },
+  { label: "Tops", href: "/coleccion/tops" },
+];
+
+export function Header() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const items = useCartStore((s) => s.items);
+  const openCart = useCartStore((s) => s.open);
+  const count = cartCount(items);
+
+  return (
+    <header className="border-b border-rose/15 bg-ivory/95 backdrop-blur sticky top-0 z-40">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <button
+          type="button"
+          className="lg:hidden text-ink"
+          aria-label="Abrir menú"
+          onClick={() => setMenuOpen((v) => !v)}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M3 6h18M3 12h18M3 18h18"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
+
+        <nav className="hidden lg:flex gap-8 text-sm tracking-wide uppercase">
+          {CATEGORIES.map((cat) => (
+            <Link
+              key={cat.href}
+              href={cat.href}
+              className="text-ink/80 hover:text-rose transition-colors"
+            >
+              {cat.label}
+            </Link>
+          ))}
+        </nav>
+
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/brand/logo.svg"
+            alt="PAOUTFIT"
+            width={140}
+            height={97}
+            className="h-12 w-auto"
+            priority
+          />
+        </Link>
+
+        <div className="flex items-center gap-5">
+          <button
+            type="button"
+            aria-label="Ver carrito"
+            onClick={openCart}
+            className="relative text-ink"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M6 8h12l-1 12H7L6 8Z"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M9 8V6a3 3 0 0 1 6 0v2"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              />
+            </svg>
+            {count > 0 && (
+              <span className="absolute -top-2 -right-2 bg-rose text-white text-[10px] leading-none rounded-full h-4 w-4 flex items-center justify-center">
+                {count}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {menuOpen && (
+        <nav className="lg:hidden border-t border-rose/15 px-4 py-4 flex flex-col gap-4 text-sm tracking-wide uppercase">
+          {CATEGORIES.map((cat) => (
+            <Link
+              key={cat.href}
+              href={cat.href}
+              onClick={() => setMenuOpen(false)}
+              className="text-ink/80 hover:text-rose transition-colors"
+            >
+              {cat.label}
+            </Link>
+          ))}
+        </nav>
+      )}
+    </header>
+  );
+}

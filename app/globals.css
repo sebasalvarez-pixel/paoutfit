@@ -1,26 +1,32 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Paleta de marca PAOUTFIT */
+  --color-rose: #c26b7c; /* rosa mauve — color principal */
+  --color-blush: #f8edee; /* blush suave — fondos/tarjetas */
+  --color-ink: #2b2224; /* texto principal, cálido oscuro */
+  --color-plum: #3b2226; /* contraste oscuro (footer, badges) */
+  --color-ivory: #f4ede9; /* fondo cálido alterno */
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-rose: var(--color-rose);
+  --color-blush: var(--color-blush);
+  --color-ink: var(--color-ink);
+  --color-plum: var(--color-plum);
+  --color-ivory: var(--color-ivory);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading), serif;
 }
