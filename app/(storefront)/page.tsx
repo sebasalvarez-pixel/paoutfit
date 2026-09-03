@@ -1,14 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getPublishedProducts, getCategories } from "@/lib/products";
+import { getBestSellers, getCategories } from "@/lib/products";
 import { ProductCard } from "@/components/storefront/ProductCard";
 
 export default async function HomePage() {
-  const products = await getPublishedProducts();
   const categories = getCategories();
-  const featured = products.filter((p) =>
-    p.variants.some((v) => v.images.length > 0),
-  );
+  const featured = await getBestSellers(4);
 
   return (
     <div>

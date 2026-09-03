@@ -49,3 +49,53 @@ export function getPrimaryImage(
   }
   return null;
 }
+
+/**
+ * "Los más comprados" para el home: productos ordenados por unidades
+ * vendidas de verdad (pedidos pagados/enviados). Mientras la tienda no
+ * tenga ventas todavía, muestra los productos que ya tienen foto en vez
+ * de una sección vacía.
+ */
+export async function getBestSellers(limit = 4) {
+  const topSales = await prisma.orderItem.groupBy({
+    by: ["variantId"],
+    where: { order: { status: { in: ["paid", "fulfilled"] } } },
+    _sum: { quantity: true },
+    orderBy: { _sum: { quantity: "desc" } },
+    take: limit * 3, // variantes de sobra por si varias son del mismo producto
+  });
+
+  if (topSales.length > 0) {
+    // Reconstruimos el orden por producto (no por variante) sin duplicar.
+    const variantToProduct = new Map(
+      (
+        await prisma.productVariant.findMany({
+          where: { id: { in: topSales.map((t) => t.variantId) } },
+          select: { id: true, productId: true },
+        })
+      ).map((v) => [v.id, v.productId]),
+    );
+    const productIdsInOrder: string[] = [];
+    for (const sale of topSales) {
+      const productId = variantToProduct.get(sale.variantId);
+      if (productId && !productIdsInOrder.includes(productId)) {
+        productIdsInOrder.push(productId);
+      }
+    }
+
+    const products = await prisma.product.findMany({
+      where: { id: { in: productIdsInOrder.slice(0, limit) }, isPublished: true },
+      include: {
+        variants: { where: { isActive: true }, include: { images: true } },
+      },
+    });
+    // Preserva el orden de más vendido a menos vendido.
+    products.sort(
+      (a, b) => productIdsInOrder.indexOf(a.id) - productIdsInOrder.indexOf(b.id),
+    );
+    if (products.length > 0) return products;
+  }
+
+  const published = await getPublishedProducts();
+  return published.filter((p) => p.variants.some((v) => v.images.length > 0)).slice(0, limit);
+}

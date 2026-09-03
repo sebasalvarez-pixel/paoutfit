@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCategories, getProductsByCategory } from "@/lib/products";
 import { ProductCard } from "@/components/storefront/ProductCard";
@@ -8,6 +9,20 @@ const SLUG_TO_CATEGORY: Record<string, string> = Object.fromEntries(
 
 export function generateStaticParams() {
   return getCategories().map((c) => ({ category: c.toLowerCase() }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ category: string }>;
+}): Promise<Metadata> {
+  const { category: slug } = await params;
+  const category = SLUG_TO_CATEGORY[slug.toLowerCase()];
+  if (!category) return {};
+  return {
+    title: `${category} — PAOUTFIT`,
+    description: `Descubre nuestra colección de ${category.toLowerCase()}: ropa deportiva y athleisure para mujer, cómoda y con estilo.`,
+  };
 }
 
 export default async function CollectionPage({
