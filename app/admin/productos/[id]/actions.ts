@@ -4,6 +4,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { slugify } from "@/lib/slug";
 
 function revalidateStorefront(handle: string) {
   revalidatePath("/");
@@ -25,6 +26,41 @@ export async function updateProduct(productId: string, formData: FormData) {
   revalidateStorefront(product.handle);
   revalidatePath(`/admin/productos/${productId}`);
   revalidatePath("/admin/productos");
+}
+
+export async function addVariant(productId: string, formData: FormData) {
+  const product = await prisma.product.findUnique({ where: { id: productId } });
+  if (!product) return { ok: false, error: "Producto no encontrado." };
+
+  const colorName = String(formData.get("colorName") ?? "").trim();
+  const priceCop = parseInt(String(formData.get("priceCop")), 10);
+  const inventoryQty = parseInt(String(formData.get("inventoryQty") ?? "0"), 10);
+
+  if (!colorName) return { ok: false, error: "Ingresa un color." };
+  if (!Number.isFinite(priceCop) || priceCop <= 0) {
+    return { ok: false, error: "Ingresa un precio válido." };
+  }
+
+  const sku = `PAO-${product.handle.toUpperCase()}-${slugify(colorName)}`;
+
+  const existing = await prisma.productVariant.findUnique({ where: { sku } });
+  if (existing) {
+    return { ok: false, error: `Ya existe una variante con el SKU ${sku}.` };
+  }
+
+  await prisma.productVariant.create({
+    data: {
+      productId,
+      colorName,
+      sku,
+      priceCop,
+      inventoryQty: Number.isFinite(inventoryQty) ? inventoryQty : 0,
+    },
+  });
+
+  revalidateStorefront(product.handle);
+  revalidatePath(`/admin/productos/${productId}`);
+  return { ok: true };
 }
 
 export async function updateVariant(

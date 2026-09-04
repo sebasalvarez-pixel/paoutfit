@@ -12,6 +12,12 @@ export default async function AdminProductsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-3xl text-ink">Productos</h1>
+        <Link
+          href="/admin/productos/nuevo"
+          className="bg-rose text-white px-5 py-2 text-sm uppercase tracking-wide hover:bg-plum transition-colors"
+        >
+          + Nuevo producto
+        </Link>
       </div>
 
       <div className="bg-white border border-ink/10 rounded overflow-x-auto">

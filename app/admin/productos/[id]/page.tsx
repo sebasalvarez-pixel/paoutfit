@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { AddVariantForm } from "@/components/admin/AddVariantForm";
 import {
   deleteProductImage,
   updateProduct,
@@ -175,6 +176,12 @@ export default async function EditProductPage({
               </div>
             );
           })}
+        </div>
+        <div className="mt-4">
+          <AddVariantForm
+            productId={product.id}
+            defaultPriceCop={product.basePriceCop}
+          />
         </div>
       </div>
 
