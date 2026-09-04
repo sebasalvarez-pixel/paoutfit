@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { formatCop } from "@/lib/format";
 import type { Product, ProductVariant, ProductImage } from "@/app/generated/prisma/client";
 
@@ -7,23 +10,55 @@ type ProductWithVariants = Product & {
   variants: (ProductVariant & { images: ProductImage[] })[];
 };
 
+const ANGLE_ORDER: Record<string, number> = { frente: 0, espalda: 1 };
+
 export function ProductCard({ product }: { product: ProductWithVariants }) {
   const hasStock = product.variants.some((v) => v.inventoryQty > 0);
-  const firstImage = (
+  const variant =
     product.variants.find((v) => v.inventoryQty > 0 && v.images[0]) ??
-    product.variants.find((v) => v.images[0])
-  )?.images[0];
+    product.variants.find((v) => v.images[0]);
+
+  // "Frente" siempre de primero — es la foto principal a la que se
+  // vuelve cuando el mouse sale de la tarjeta.
+  const images = [...(variant?.images ?? [])].sort(
+    (a, b) => (ANGLE_ORDER[a.angle ?? ""] ?? 9) - (ANGLE_ORDER[b.angle ?? ""] ?? 9),
+  );
+
+  const [activeIndex, setActiveIndex] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function startCycling() {
+    if (images.length < 2) return;
+    intervalRef.current = setInterval(() => {
+      setActiveIndex((i) => (i + 1) % images.length);
+    }, 900);
+  }
+
+  function stopCycling() {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = null;
+    setActiveIndex(0);
+  }
+
+  useEffect(() => () => stopCycling(), []);
+
+  const activeImage = images[activeIndex] ?? images[0];
 
   return (
-    <Link href={`/producto/${product.handle}`} className="group block">
+    <Link
+      href={`/producto/${product.handle}`}
+      className="group block"
+      onMouseEnter={startCycling}
+      onMouseLeave={stopCycling}
+    >
       <div className="relative aspect-[3/4] bg-blush overflow-hidden">
-        {firstImage ? (
+        {activeImage ? (
           <Image
-            src={firstImage.storagePath}
-            alt={firstImage.altText ?? product.title}
+            src={activeImage.storagePath}
+            alt={activeImage.altText ?? product.title}
             fill
             sizes="(min-width: 1024px) 25vw, 50vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-cover transition-all duration-500 ease-out group-hover:scale-110"
           />
         ) : (
           <div className="h-full w-full flex items-center justify-center text-ink/30 text-sm uppercase tracking-wide">
@@ -34,6 +69,25 @@ export function ProductCard({ product }: { product: ProductWithVariants }) {
           <span className="absolute top-3 left-3 bg-plum text-blush text-[10px] uppercase tracking-wide px-2 py-1">
             Agotado
           </span>
+        )}
+        {activeImage && hasStock && (
+          <div className="absolute inset-0 flex items-center justify-center bg-ink/0 group-hover:bg-ink/15 transition-colors duration-300">
+            <span className="opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 bg-white text-ink text-xs uppercase tracking-wide px-5 py-2">
+              Ver producto
+            </span>
+          </div>
+        )}
+        {images.length > 1 && (
+          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+            {images.map((img, i) => (
+              <span
+                key={img.id}
+                className={`h-1 w-1 rounded-full transition-colors ${
+                  i === activeIndex ? "bg-rose" : "bg-white/70"
+                }`}
+              />
+            ))}
+          </div>
         )}
       </div>
       <div className="mt-3 text-center">

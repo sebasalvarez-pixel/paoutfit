@@ -140,7 +140,7 @@ export function ProductDetail({ product }: { product: ProductWithVariants }) {
         <button
           onClick={handleAddToCart}
           disabled={outOfStock}
-          className="mt-8 w-full sm:w-auto px-10 py-3 bg-rose text-white uppercase text-sm tracking-wide hover:bg-plum transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="mt-8 w-full sm:w-auto px-10 py-3 bg-rose text-white uppercase text-sm tracking-wide hover:bg-plum active:scale-95 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
         >
           {outOfStock
             ? "Agotado"

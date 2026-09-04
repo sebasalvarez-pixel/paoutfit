@@ -70,7 +70,7 @@ export function Header() {
             type="button"
             aria-label="Ver carrito"
             onClick={openCart}
-            className="relative text-ink"
+            className="relative text-ink hover:text-rose transition-all duration-200 hover:scale-110 active:scale-90"
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
               <path
@@ -86,7 +86,10 @@ export function Header() {
               />
             </svg>
             {count > 0 && (
-              <span className="absolute -top-2 -right-2 bg-rose text-white text-[10px] leading-none rounded-full h-4 w-4 flex items-center justify-center">
+              <span
+                key={count}
+                className="absolute -top-2 -right-2 bg-rose text-white text-[10px] leading-none rounded-full h-4 w-4 flex items-center justify-center animate-badge-pop"
+              >
                 {count}
               </span>
             )}

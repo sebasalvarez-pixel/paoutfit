@@ -9,22 +9,31 @@ export function CartDrawer() {
   const { items, isOpen, close, removeItem, setQuantity } = useCartStore();
   const total = cartTotal(items);
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
+    <>
+      {/* Fondo oscuro: aparece/desaparece con un fundido. */}
       <button
         aria-label="Cerrar carrito"
+        tabIndex={isOpen ? 0 : -1}
         onClick={close}
-        className="absolute inset-0 bg-ink/40"
+        className={`fixed inset-0 z-50 bg-ink/40 transition-opacity duration-300 ${
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
       />
-      <div className="relative w-full max-w-md bg-ivory h-full flex flex-col shadow-xl">
+
+      {/* Panel: se desliza desde la derecha. */}
+      <div
+        aria-hidden={!isOpen}
+        className={`fixed inset-y-0 right-0 z-50 w-full max-w-md bg-ivory flex flex-col shadow-xl transition-transform duration-300 ease-out ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
         <div className="flex items-center justify-between px-6 py-5 border-b border-rose/15">
           <h2 className="font-heading text-xl">Tu carrito</h2>
           <button
             onClick={close}
             aria-label="Cerrar"
-            className="text-ink/60 hover:text-ink"
+            className="text-ink/60 hover:text-ink hover:rotate-90 transition-transform duration-200"
           >
             ✕
           </button>
@@ -99,13 +108,13 @@ export function CartDrawer() {
             <Link
               href="/checkout"
               onClick={close}
-              className="block text-center bg-rose text-white py-3 uppercase text-sm tracking-wide hover:bg-plum transition-colors"
+              className="block text-center bg-rose text-white py-3 uppercase text-sm tracking-wide hover:bg-plum active:scale-95 transition-all"
             >
               Finalizar compra
             </Link>
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 }

@@ -30,3 +30,19 @@ h3,
 h4 {
   font-family: var(--font-heading), serif;
 }
+
+/* Pequeño "pop" cuando cambia el número en el ícono del carrito. */
+@keyframes badge-pop {
+  0% {
+    transform: scale(0.4);
+  }
+  60% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.animate-badge-pop {
+  animation: badge-pop 0.3s ease-out;
+}
