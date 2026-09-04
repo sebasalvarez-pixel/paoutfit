@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
  * en una fase posterior. No requiere ninguna cuenta externa para empezar
  * a usar el panel ya mismo.
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const user = process.env.ADMIN_USERNAME;
   const pass = process.env.ADMIN_PASSWORD;
 
