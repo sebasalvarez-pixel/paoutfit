@@ -1,10 +1,18 @@
+import { UnsavedChangesGuard } from "@/components/admin/UnsavedChangesGuard";
 import { createProduct } from "./actions";
 
 export default function NewProductPage() {
   return (
     <div className="max-w-2xl space-y-6">
+      <UnsavedChangesGuard />
       <div>
-        <h1 className="font-heading text-3xl text-ink">Nuevo producto</h1>
+        <a
+          href="/admin/productos"
+          className="text-xs uppercase tracking-wide text-ink/50 hover:text-rose"
+        >
+          ← Volver a productos
+        </a>
+        <h1 className="font-heading text-3xl text-ink mt-2">Nuevo producto</h1>
         <p className="text-ink/50 text-sm mt-1">
           Se crea con un color inicial — luego puedes agregar más colores y
           fotos desde la ficha del producto.

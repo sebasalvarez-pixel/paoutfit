@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { AddVariantForm } from "@/components/admin/AddVariantForm";
 import { UploadImageForm } from "@/components/admin/UploadImageForm";
+import { UnsavedChangesGuard } from "@/components/admin/UnsavedChangesGuard";
 import {
   deleteProductImage,
   setCoverImage,
@@ -32,8 +33,15 @@ export default async function EditProductPage({
 
   return (
     <div className="space-y-10 max-w-3xl">
+      <UnsavedChangesGuard />
       <div>
-        <h1 className="font-heading text-3xl text-ink">{product.title}</h1>
+        <a
+          href="/admin/productos"
+          className="text-xs uppercase tracking-wide text-ink/50 hover:text-rose"
+        >
+          ← Volver a productos
+        </a>
+        <h1 className="font-heading text-3xl text-ink mt-2">{product.title}</h1>
         <p className="text-ink/50 text-sm">/{product.handle}</p>
       </div>
 
