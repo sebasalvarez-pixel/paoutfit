@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatCop } from "@/lib/format";
-import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
+import { OrderStatusBadge, STATUS_LABEL } from "@/components/admin/OrderStatusBadge";
+import { UnsavedChangesGuard } from "@/components/admin/UnsavedChangesGuard";
 import { changeOrderStatus, markAsShipped } from "./actions";
 
 const STATUSES = [
@@ -41,9 +42,16 @@ export default async function AdminOrderDetailPage({
 
   return (
     <div className="max-w-3xl space-y-8">
+      <UnsavedChangesGuard />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-heading text-3xl text-ink">
+          <a
+            href="/admin/pedidos"
+            className="text-xs uppercase tracking-wide text-ink/50 hover:text-rose"
+          >
+            ← Volver a pedidos
+          </a>
+          <h1 className="font-heading text-3xl text-ink mt-2">
             {order.orderNumber}
           </h1>
           <p className="text-ink/50 text-sm">
@@ -161,11 +169,11 @@ export default async function AdminOrderDetailPage({
           <select
             name="status"
             defaultValue={order.status}
-            className="border border-ink/20 px-3 py-2 text-sm capitalize"
+            className="border border-ink/20 px-3 py-2 text-sm"
           >
             {STATUSES.map((s) => (
               <option key={s} value={s}>
-                {s}
+                {STATUS_LABEL[s]}
               </option>
             ))}
           </select>
@@ -190,7 +198,7 @@ export default async function AdminOrderDetailPage({
           {order.statusHistory.map((event) => (
             <li key={event.id} className="text-xs text-ink/60 flex gap-2">
               <span>{event.createdAt.toLocaleString("es-CO")}</span>
-              <span className="capitalize">{event.status}</span>
+              <span>{STATUS_LABEL[event.status] ?? event.status}</span>
               <span className="text-ink/40">({event.source})</span>
             </li>
           ))}

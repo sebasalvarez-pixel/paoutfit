@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatCop } from "@/lib/format";
-import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
+import { OrderStatusBadge, STATUS_LABEL } from "@/components/admin/OrderStatusBadge";
 import { rangeStart, RANGE_LABEL, type DashboardRange } from "@/lib/admin-data";
 
 const STATUSES = [
@@ -98,11 +98,11 @@ export default async function AdminOrdersPage({
             <Link
               key={s}
               href={buildHref({ status: s })}
-              className={`px-3 py-1 rounded-full border capitalize ${
+              className={`px-3 py-1 rounded-full border ${
                 status === s ? "bg-rose text-white border-rose" : "border-ink/20 text-ink/60"
               }`}
             >
-              {s}
+              {STATUS_LABEL[s]}
             </Link>
           ))}
         </div>

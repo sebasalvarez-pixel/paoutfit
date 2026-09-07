@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AdminNav } from "@/components/admin/AdminNav";
+import { AdminMobileHeader } from "@/components/admin/AdminMobileHeader";
 
 export const metadata = {
   title: "Panel — PAOUTFIT",
@@ -13,7 +14,8 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-ivory flex">
+    <div className="min-h-screen bg-ivory md:flex">
+      <AdminMobileHeader />
       <aside className="w-64 shrink-0 border-r border-ink/10 bg-white p-6 hidden md:block">
         <Link href="/admin" className="flex items-center gap-2 mb-8">
           <Image

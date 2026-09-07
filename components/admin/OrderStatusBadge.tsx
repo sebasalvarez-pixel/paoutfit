@@ -7,7 +7,7 @@ const STATUS_STYLES: Record<string, string> = {
   refunded: "bg-purple-100 text-purple-800",
 };
 
-const STATUS_LABEL: Record<string, string> = {
+export const STATUS_LABEL: Record<string, string> = {
   pending: "Pendiente",
   paid: "Pagado",
   failed: "Fallido",
