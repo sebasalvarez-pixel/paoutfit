@@ -8,6 +8,7 @@ export async function getPublishedProducts() {
       variants: {
         where: { isActive: true },
         include: { images: { orderBy: { position: "asc" } } },
+        orderBy: { position: "asc" },
       },
     },
     orderBy: { createdAt: "asc" },
@@ -24,6 +25,7 @@ export async function getProductsByCategory(category: string) {
       variants: {
         where: { isActive: true },
         include: { images: { orderBy: { position: "asc" } } },
+        orderBy: { position: "asc" },
       },
     },
     orderBy: { createdAt: "asc" },
@@ -37,6 +39,7 @@ export async function getProductByHandle(handle: string) {
       variants: {
         where: { isActive: true },
         include: { images: { orderBy: { position: "asc" } } },
+        orderBy: { position: "asc" },
       },
     },
   });
@@ -122,6 +125,7 @@ export async function getBestSellers(limit = 4) {
         variants: {
         where: { isActive: true },
         include: { images: { orderBy: { position: "asc" } } },
+        orderBy: { position: "asc" },
       },
       },
     });

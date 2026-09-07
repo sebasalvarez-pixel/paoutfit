@@ -6,6 +6,7 @@ import { UploadImageForm } from "@/components/admin/UploadImageForm";
 import {
   deleteProductImage,
   setCoverImage,
+  setCoverVariant,
   updateProduct,
   updateVariant,
 } from "./actions";
@@ -21,7 +22,7 @@ export default async function EditProductPage({
     include: {
       variants: {
         include: { images: { orderBy: { position: "asc" } } },
-        orderBy: { colorName: "asc" },
+        orderBy: { position: "asc" },
       },
     },
   });
@@ -103,7 +104,7 @@ export default async function EditProductPage({
           Colores e inventario
         </h2>
         <div className="space-y-3">
-          {product.variants.map((variant) => {
+          {product.variants.map((variant, variantIndex) => {
             const boundUpdateVariant = updateVariant.bind(
               null,
               variant.id,
@@ -120,8 +121,25 @@ export default async function EditProductPage({
                 >
                   <div>
                     <p className="text-xs text-ink/50">Color</p>
-                    <p className="text-sm font-medium">{variant.colorName}</p>
+                    <p className="text-sm font-medium">
+                      {variant.colorName}
+                      {variantIndex === 0 && (
+                        <span className="ml-2 bg-rose text-white text-[9px] px-1.5 py-0.5 align-middle">
+                          Portada del producto
+                        </span>
+                      )}
+                    </p>
                     <p className="text-[11px] text-ink/40">{variant.sku}</p>
+                    {variantIndex !== 0 && (
+                      <form action={setCoverVariant.bind(null, product.id, variant.id)}>
+                        <button
+                          type="submit"
+                          className="text-[10px] text-ink/50 underline hover:text-rose mt-1"
+                        >
+                          Usar este color como portada
+                        </button>
+                      </form>
+                    )}
                   </div>
                   <div>
                     <label className="text-xs text-ink/60">Precio (COP)</label>

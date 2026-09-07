@@ -59,6 +59,7 @@ model ProductVariant {
   priceCop     Int      @map("price_cop")
   inventoryQty Int      @default(0) @map("inventory_qty")
   isActive     Boolean  @default(true) @map("is_active")
+  position     Int      @default(0) @map("position")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 

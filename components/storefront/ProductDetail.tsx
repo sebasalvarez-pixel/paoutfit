@@ -44,6 +44,11 @@ export function ProductDetail({ product }: { product: ProductWithVariants }) {
     setAdded(false);
   }
 
+  function goToImage(offset: number) {
+    if (images.length < 2) return;
+    setActiveImageIndex((i) => (i + offset + images.length) % images.length);
+  }
+
   function handleAddToCart() {
     if (!selectedVariant) return;
     addItem({
@@ -63,9 +68,10 @@ export function ProductDetail({ product }: { product: ProductWithVariants }) {
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 grid lg:grid-cols-2 gap-12">
       {/* Galería */}
       <div>
-        <div className="relative aspect-[3/4] bg-blush overflow-hidden">
+        <div className="relative aspect-[3/4] bg-blush overflow-hidden group">
           {activeImage ? (
             <Image
+              key={activeImage.id}
               src={activeImage.storagePath}
               alt={activeImage.altText ?? product.title}
               fill
@@ -77,6 +83,36 @@ export function ProductDetail({ product }: { product: ProductWithVariants }) {
             <div className="h-full w-full flex items-center justify-center text-ink/30 uppercase text-sm">
               Foto próximamente
             </div>
+          )}
+          {images.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={() => goToImage(-1)}
+                aria-label="Foto anterior"
+                className="absolute left-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full flex items-center justify-center bg-white/80 text-ink text-xl opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                onClick={() => goToImage(1)}
+                aria-label="Foto siguiente"
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full flex items-center justify-center bg-white/80 text-ink text-xl opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+              >
+                ›
+              </button>
+              <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
+                {images.map((img, i) => (
+                  <span
+                    key={img.id}
+                    className={`h-1.5 w-1.5 rounded-full transition-colors ${
+                      i === activeImageIndex ? "bg-rose" : "bg-white/70"
+                    }`}
+                  />
+                ))}
+              </div>
+            </>
           )}
         </div>
         {images.length > 1 && (

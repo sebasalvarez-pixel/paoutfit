@@ -47,6 +47,11 @@ export async function addVariant(productId: string, formData: FormData) {
     return { ok: false, error: `Ya existe una variante con el SKU ${sku}.` };
   }
 
+  const lastVariant = await prisma.productVariant.findFirst({
+    where: { productId },
+    orderBy: { position: "desc" },
+  });
+
   await prisma.productVariant.create({
     data: {
       productId,
@@ -54,12 +59,37 @@ export async function addVariant(productId: string, formData: FormData) {
       sku,
       priceCop,
       inventoryQty: Number.isFinite(inventoryQty) ? inventoryQty : 0,
+      position: (lastVariant?.position ?? -1) + 1,
     },
   });
 
   revalidateStorefront(product.handle);
   revalidatePath(`/admin/productos/${productId}`);
   return { ok: true };
+}
+
+// Pone este color de primero para el producto: es el que se ve en la
+// tarjeta del catálogo y al entrar a la página del producto.
+export async function setCoverVariant(productId: string, variantId: string) {
+  const siblings = await prisma.productVariant.findMany({
+    where: { productId },
+    orderBy: { position: "asc" },
+  });
+  const chosen = siblings.find((v) => v.id === variantId);
+  if (!chosen) return;
+
+  const reordered = [chosen, ...siblings.filter((v) => v.id !== variantId)];
+  await prisma.$transaction(
+    reordered.map((v, index) =>
+      prisma.productVariant.update({ where: { id: v.id }, data: { position: index } }),
+    ),
+  );
+
+  const product = await prisma.product.findUnique({ where: { id: productId } });
+  if (product) {
+    revalidateStorefront(product.handle);
+    revalidatePath(`/admin/productos/${productId}`);
+  }
 }
 
 export async function updateVariant(
