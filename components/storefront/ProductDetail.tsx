@@ -24,6 +24,9 @@ export function ProductDetail({ product }: { product: ProductWithVariants }) {
   const [selectedVariantId, setSelectedVariantId] = useState(
     initialVariant?.id,
   );
+  // Antes de elegir un color se ven todas las fotos del producto
+  // mezcladas; al hacer clic en un color, se filtra a solo esas fotos.
+  const [filterByColor, setFilterByColor] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [added, setAdded] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
@@ -33,11 +36,17 @@ export function ProductDetail({ product }: { product: ProductWithVariants }) {
     [product.variants, selectedVariantId],
   );
 
-  const images = selectedVariant?.images ?? [];
+  const allImages = useMemo(
+    () => product.variants.flatMap((v) => v.images),
+    [product.variants],
+  );
+
+  const images = filterByColor ? (selectedVariant?.images ?? []) : allImages;
   const activeImage = images[activeImageIndex] ?? images[0];
 
   function handleSelectVariant(id: string) {
     setSelectedVariantId(id);
+    setFilterByColor(true);
     setActiveImageIndex(0);
     setAdded(false);
   }
