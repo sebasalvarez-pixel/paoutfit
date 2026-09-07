@@ -44,7 +44,7 @@ export default async function HomePage() {
               fill
               sizes="(min-width: 1024px) 50vw, 100vw"
               priority
-              className="object-cover"
+              className="object-cover object-top"
             />
           )}
         </div>
@@ -67,7 +67,7 @@ export default async function HomePage() {
                     alt={image.alt}
                     fill
                     sizes="(min-width: 640px) 33vw, 100vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-ink/50 via-transparent to-transparent" />
                 </>

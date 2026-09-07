@@ -63,7 +63,7 @@ export function EmailCapturePopup({
               alt={image.alt}
               fill
               sizes="200px"
-              className="object-cover"
+              className="object-cover object-top"
             />
           )}
         </div>
