@@ -13,6 +13,7 @@ export function UploadImageForm({
   productId: string;
   variants: { id: string; colorName: string }[];
 }) {
+  const firstVariantId = variants[0]?.id ?? "";
   const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<
     { type: "idle" } | { type: "error"; message: string } | { type: "success" }
@@ -25,10 +26,14 @@ export function UploadImageForm({
     setStatus({ type: "idle" });
     const formData = new FormData(e.currentTarget);
     const rawFile = formData.get("file") as File | null;
-    const variantId = String(formData.get("variantId") || "") || null;
+    const variantId = String(formData.get("variantId") || "");
 
     if (!rawFile || rawFile.size === 0) {
       setStatus({ type: "error", message: "Selecciona una foto." });
+      return;
+    }
+    if (!variantId) {
+      setStatus({ type: "error", message: "Elige a qué color pertenece la foto." });
       return;
     }
 
@@ -68,13 +73,13 @@ export function UploadImageForm({
       className="bg-white border border-ink/10 rounded p-4 flex flex-wrap items-end gap-4"
     >
       <div>
-        <label className="text-xs text-ink/60">Color (opcional)</label>
+        <label className="text-xs text-ink/60">Color</label>
         <select
           name="variantId"
-          defaultValue=""
+          defaultValue={firstVariantId}
+          required
           className="border border-ink/20 px-2 py-2 mt-1 text-sm"
         >
-          <option value="">General del producto</option>
           {variants.map((v) => (
             <option key={v.id} value={v.id}>
               {v.colorName}

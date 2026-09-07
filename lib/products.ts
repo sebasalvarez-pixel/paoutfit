@@ -5,7 +5,10 @@ export async function getPublishedProducts() {
   return prisma.product.findMany({
     where: { isPublished: true },
     include: {
-      variants: { where: { isActive: true }, include: { images: true } },
+      variants: {
+        where: { isActive: true },
+        include: { images: { orderBy: { position: "asc" } } },
+      },
     },
     orderBy: { createdAt: "asc" },
   });
@@ -18,7 +21,10 @@ export async function getProductsByCategory(category: string) {
       category: { equals: category, mode: "insensitive" },
     },
     include: {
-      variants: { where: { isActive: true }, include: { images: true } },
+      variants: {
+        where: { isActive: true },
+        include: { images: { orderBy: { position: "asc" } } },
+      },
     },
     orderBy: { createdAt: "asc" },
   });
@@ -113,7 +119,10 @@ export async function getBestSellers(limit = 4) {
     const products = await prisma.product.findMany({
       where: { id: { in: productIdsInOrder.slice(0, limit) }, isPublished: true },
       include: {
-        variants: { where: { isActive: true }, include: { images: true } },
+        variants: {
+        where: { isActive: true },
+        include: { images: { orderBy: { position: "asc" } } },
+      },
       },
     });
     // Preserva el orden de más vendido a menos vendido.

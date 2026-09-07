@@ -122,18 +122,51 @@ export async function confirmImageUpload(
     .from(PRODUCT_IMAGES_BUCKET)
     .getPublicUrl(storageKey);
 
+  // Va al final de la fila de fotos de ese color; si es la primera, queda
+  // de portada automáticamente (posición 0).
+  const lastImage = await prisma.productImage.findFirst({
+    where: { variantId },
+    orderBy: { position: "desc" },
+  });
+
   await prisma.productImage.create({
     data: {
       productId,
       variantId,
       storagePath: publicUrl.publicUrl,
       altText: product.title,
+      position: (lastImage?.position ?? -1) + 1,
     },
   });
 
   revalidateStorefront(product.handle);
   revalidatePath(`/admin/productos/${productId}`);
   return { ok: true as const };
+}
+
+// Pone esta foto de primera en su color (la "portada" que se ve en el
+// catálogo y en la tarjeta de producto), recorriendo el resto un puesto.
+export async function setCoverImage(imageId: string) {
+  const image = await prisma.productImage.findUnique({ where: { id: imageId } });
+  if (!image || !image.variantId) return;
+
+  const siblings = await prisma.productImage.findMany({
+    where: { variantId: image.variantId },
+    orderBy: { position: "asc" },
+  });
+  const reordered = [image, ...siblings.filter((s) => s.id !== imageId)];
+
+  await prisma.$transaction(
+    reordered.map((img, index) =>
+      prisma.productImage.update({ where: { id: img.id }, data: { position: index } }),
+    ),
+  );
+
+  const product = await prisma.product.findUnique({ where: { id: image.productId } });
+  if (product) {
+    revalidateStorefront(product.handle);
+    revalidatePath(`/admin/productos/${image.productId}`);
+  }
 }
 
 export async function deleteProductImage(imageId: string) {

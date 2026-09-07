@@ -3,7 +3,12 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { AddVariantForm } from "@/components/admin/AddVariantForm";
 import { UploadImageForm } from "@/components/admin/UploadImageForm";
-import { deleteProductImage, updateProduct, updateVariant } from "./actions";
+import {
+  deleteProductImage,
+  setCoverImage,
+  updateProduct,
+  updateVariant,
+} from "./actions";
 
 export default async function EditProductPage({
   params,
@@ -14,7 +19,10 @@ export default async function EditProductPage({
   const product = await prisma.product.findUnique({
     where: { id },
     include: {
-      variants: { include: { images: true }, orderBy: { colorName: "asc" } },
+      variants: {
+        include: { images: { orderBy: { position: "asc" } } },
+        orderBy: { colorName: "asc" },
+      },
     },
   });
   if (!product) notFound();
@@ -149,7 +157,7 @@ export default async function EditProductPage({
                   </button>
                 </form>
                 <div className="flex gap-1 ml-auto">
-                  {variant.images.map((img) => (
+                  {variant.images.map((img, index) => (
                     <div key={img.id} className="relative h-14 w-12 group">
                       <Image
                         src={img.storagePath}
@@ -158,14 +166,33 @@ export default async function EditProductPage({
                         sizes="48px"
                         className="object-cover"
                       />
-                      <form action={deleteProductImage.bind(null, img.id)}>
-                        <button
-                          type="submit"
-                          className="absolute inset-0 bg-black/50 text-white text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          Borrar
-                        </button>
-                      </form>
+                      {index === 0 && (
+                        <span className="absolute top-0 left-0 bg-rose text-white text-[8px] px-1">
+                          Portada
+                        </span>
+                      )}
+                      <div className="absolute inset-0 flex flex-col opacity-0 group-hover:opacity-100 transition-opacity">
+                        {index !== 0 && (
+                          <form action={setCoverImage.bind(null, img.id)} className="flex-1">
+                            <button
+                              type="submit"
+                              className="w-full h-full bg-black/50 text-white text-[8px] leading-tight"
+                            >
+                              Marcar
+                              <br />
+                              portada
+                            </button>
+                          </form>
+                        )}
+                        <form action={deleteProductImage.bind(null, img.id)} className="flex-1">
+                          <button
+                            type="submit"
+                            className="w-full h-full bg-black/70 text-white text-[9px]"
+                          >
+                            Borrar
+                          </button>
+                        </form>
+                      </div>
                     </div>
                   ))}
                 </div>
