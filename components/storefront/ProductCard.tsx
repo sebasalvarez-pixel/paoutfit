@@ -14,9 +14,10 @@ const ANGLE_ORDER: Record<string, number> = { frente: 0, espalda: 1 };
 
 export function ProductCard({ product }: { product: ProductWithVariants }) {
   const hasStock = product.variants.some((v) => v.inventoryQty > 0);
-  const variant =
-    product.variants.find((v) => v.inventoryQty > 0 && v.images[0]) ??
-    product.variants.find((v) => v.images[0]);
+  // Los colores vienen ordenados con la portada elegida de primero; se
+  // respeta ese orden aunque ese color en particular esté agotado (el
+  // producto ya se marca "Agotado" aparte si NINGÚN color tiene stock).
+  const variant = product.variants.find((v) => v.images[0]);
 
   // "Frente" siempre de primero — es la foto principal a la que se
   // vuelve cuando el mouse sale de la tarjeta.

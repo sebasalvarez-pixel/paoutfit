@@ -18,11 +18,9 @@ export function ProductDetail({ product }: { product: ProductWithVariants }) {
   const variantsWithImages = product.variants.filter(
     (v) => v.images.length > 0,
   );
-  const initialVariant =
-    variantsWithImages.find((v) => v.inventoryQty > 0) ??
-    variantsWithImages[0] ??
-    product.variants.find((v) => v.inventoryQty > 0) ??
-    product.variants[0];
+  // Los colores vienen ordenados con la portada elegida de primero; se
+  // respeta ese orden al abrir la página aunque ese color esté agotado.
+  const initialVariant = variantsWithImages[0] ?? product.variants[0];
   const [selectedVariantId, setSelectedVariantId] = useState(
     initialVariant?.id,
   );
