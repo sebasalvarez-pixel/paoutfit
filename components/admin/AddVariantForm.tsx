@@ -21,7 +21,7 @@ export function AddVariantForm({
     startTransition(async () => {
       const result = await addVariant(productId, formData);
       if (!result.ok) {
-        setError(result.error);
+        setError(result.error ?? "Ocurrió un error inesperado.");
         return;
       }
       formRef.current?.reset();

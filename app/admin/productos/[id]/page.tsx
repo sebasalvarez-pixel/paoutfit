@@ -188,7 +188,10 @@ export default async function EditProductPage({
       <div>
         <h2 className="font-heading text-xl text-ink mb-4">Subir foto</h2>
         <form
-          action={uploadProductImage}
+          action={async (formData: FormData) => {
+            "use server";
+            await uploadProductImage(formData);
+          }}
           className="bg-white border border-ink/10 rounded p-4 flex flex-wrap items-end gap-4"
         >
           <input type="hidden" name="productId" value={product.id} />

@@ -92,7 +92,7 @@ export function RevenueChart({ data }: { data: Point[] }) {
                   rx={Math.min(4, barWidth / 2)}
                   fill="#C26B7C"
                   opacity={d.revenueCop > 0 ? 1 : 0.15}
-                  title={`${DAY_LABEL.format(parseDay(d.date))}: ${formatCop(d.revenueCop)}`}
+                  {...{ title: `${DAY_LABEL.format(parseDay(d.date))}: ${formatCop(d.revenueCop)}` }}
                 />
                 {showLabel && (
                   <text
