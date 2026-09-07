@@ -10,8 +10,6 @@ type ProductWithVariants = Product & {
   variants: (ProductVariant & { images: ProductImage[] })[];
 };
 
-const ANGLE_ORDER: Record<string, number> = { frente: 0, espalda: 1 };
-
 export function ProductCard({ product }: { product: ProductWithVariants }) {
   const hasStock = product.variants.some((v) => v.inventoryQty > 0);
   // Los colores vienen ordenados con la portada elegida de primero; se
@@ -19,11 +17,9 @@ export function ProductCard({ product }: { product: ProductWithVariants }) {
   // producto ya se marca "Agotado" aparte si NINGÚN color tiene stock).
   const variant = product.variants.find((v) => v.images[0]);
 
-  // "Frente" siempre de primero — es la foto principal a la que se
-  // vuelve cuando el mouse sale de la tarjeta.
-  const images = [...(variant?.images ?? [])].sort(
-    (a, b) => (ANGLE_ORDER[a.angle ?? ""] ?? 9) - (ANGLE_ORDER[b.angle ?? ""] ?? 9),
-  );
+  // Las fotos ya vienen ordenadas por posición (la portada elegida
+  // siempre de primera); esa es la que se ve al volver del hover.
+  const images = variant?.images ?? [];
 
   const [activeIndex, setActiveIndex] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
