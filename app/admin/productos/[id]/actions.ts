@@ -1,10 +1,9 @@
 "use server";
 
-import fs from "node:fs/promises";
-import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slug";
+import { supabaseAdmin, PRODUCT_IMAGES_BUCKET } from "@/lib/supabase";
 
 function revalidateStorefront(handle: string) {
   revalidatePath("/");
@@ -96,19 +95,27 @@ export async function uploadProductImage(formData: FormData) {
   const product = await prisma.product.findUnique({ where: { id: productId } });
   if (!product) return { ok: false, error: "Producto no encontrado." };
 
-  const destDir = path.join(process.cwd(), "public", "products", product.handle);
-  await fs.mkdir(destDir, { recursive: true });
-
   const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
   const filename = `${product.handle}-${Date.now()}.${ext}`;
+  const storageKey = `${product.handle}/${filename}`;
   const buffer = Buffer.from(await file.arrayBuffer());
-  await fs.writeFile(path.join(destDir, filename), buffer);
+
+  const { error: uploadError } = await supabaseAdmin.storage
+    .from(PRODUCT_IMAGES_BUCKET)
+    .upload(storageKey, buffer, { contentType: file.type });
+  if (uploadError) {
+    return { ok: false, error: `No se pudo subir la imagen: ${uploadError.message}` };
+  }
+
+  const { data: publicUrl } = supabaseAdmin.storage
+    .from(PRODUCT_IMAGES_BUCKET)
+    .getPublicUrl(storageKey);
 
   await prisma.productImage.create({
     data: {
       productId,
       variantId,
-      storagePath: `/products/${product.handle}/${filename}`,
+      storagePath: publicUrl.publicUrl,
       altText: product.title,
     },
   });
@@ -127,8 +134,14 @@ export async function deleteProductImage(imageId: string) {
 
   await prisma.productImage.delete({ where: { id: imageId } });
 
-  const filePath = path.join(process.cwd(), "public", image.storagePath);
-  await fs.unlink(filePath).catch(() => {});
+  // Las fotos del catálogo inicial viven en /public (parte del sitio
+  // estático); solo las subidas desde el panel viven en Supabase Storage.
+  if (image.storagePath.includes(`/${PRODUCT_IMAGES_BUCKET}/`)) {
+    const storageKey = image.storagePath.split(`/${PRODUCT_IMAGES_BUCKET}/`)[1];
+    if (storageKey) {
+      await supabaseAdmin.storage.from(PRODUCT_IMAGES_BUCKET).remove([storageKey]);
+    }
+  }
 
   revalidateStorefront(image.product.handle);
   revalidatePath(`/admin/productos/${image.productId}`);
