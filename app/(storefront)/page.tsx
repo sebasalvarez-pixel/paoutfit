@@ -8,6 +8,11 @@ import {
 } from "@/lib/products";
 import { ProductCard } from "@/components/storefront/ProductCard";
 
+// Siempre al día: catálogo, fotos e inventario cambian desde el panel
+// admin y deben verse reflejados de inmediato, sin depender de que la
+// re-validación de una página prerenderizada llegue a tiempo.
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const categories = getCategories();
   const featured = await getBestSellers(4);

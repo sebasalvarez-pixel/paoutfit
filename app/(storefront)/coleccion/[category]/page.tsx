@@ -11,6 +11,10 @@ export function generateStaticParams() {
   return getCategories().map((c) => ({ category: c.toLowerCase() }));
 }
 
+// Igual que el home: el catálogo cambia desde el panel admin y debe
+// verse al día sin depender de que una re-validación llegue a tiempo.
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: {
