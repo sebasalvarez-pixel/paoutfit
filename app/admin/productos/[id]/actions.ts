@@ -80,32 +80,43 @@ export async function updateVariant(
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-export async function uploadProductImage(formData: FormData) {
-  const productId = String(formData.get("productId"));
-  const variantId = String(formData.get("variantId") || "") || null;
-  const file = formData.get("file") as File | null;
-
-  if (!file || file.size === 0) {
-    return { ok: false, error: "Selecciona una imagen." };
-  }
-  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-    return { ok: false, error: "Solo se aceptan imágenes JPG, PNG o WEBP." };
+// Subimos en dos pasos para no mandar la foto por la función serverless de
+// Netlify (que tiene un límite de tamaño de petición de pocos MB): el
+// servidor solo genera un permiso de subida de un solo uso, y el navegador
+// sube el archivo directo a Supabase Storage.
+export async function createImageUploadUrl(
+  productId: string,
+  fileName: string,
+  contentType: string,
+) {
+  if (!ALLOWED_IMAGE_TYPES.includes(contentType)) {
+    return { ok: false as const, error: "Solo se aceptan imágenes JPG, PNG o WEBP." };
   }
 
   const product = await prisma.product.findUnique({ where: { id: productId } });
-  if (!product) return { ok: false, error: "Producto no encontrado." };
+  if (!product) return { ok: false as const, error: "Producto no encontrado." };
 
-  const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
-  const filename = `${product.handle}-${Date.now()}.${ext}`;
-  const storageKey = `${product.handle}/${filename}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const ext = contentType === "image/png" ? "png" : contentType === "image/webp" ? "webp" : "jpg";
+  const storageKey = `${product.handle}/${product.handle}-${Date.now()}.${ext}`;
 
-  const { error: uploadError } = await supabaseAdmin.storage
+  const { data, error } = await supabaseAdmin.storage
     .from(PRODUCT_IMAGES_BUCKET)
-    .upload(storageKey, buffer, { contentType: file.type });
-  if (uploadError) {
-    return { ok: false, error: `No se pudo subir la imagen: ${uploadError.message}` };
+    .createSignedUploadUrl(storageKey);
+
+  if (error || !data) {
+    return { ok: false as const, error: "No se pudo preparar la subida." };
   }
+
+  return { ok: true as const, storageKey, token: data.token };
+}
+
+export async function confirmImageUpload(
+  productId: string,
+  variantId: string | null,
+  storageKey: string,
+) {
+  const product = await prisma.product.findUnique({ where: { id: productId } });
+  if (!product) return { ok: false as const, error: "Producto no encontrado." };
 
   const { data: publicUrl } = supabaseAdmin.storage
     .from(PRODUCT_IMAGES_BUCKET)
@@ -122,7 +133,7 @@ export async function uploadProductImage(formData: FormData) {
 
   revalidateStorefront(product.handle);
   revalidatePath(`/admin/productos/${productId}`);
-  return { ok: true };
+  return { ok: true as const };
 }
 
 export async function deleteProductImage(imageId: string) {

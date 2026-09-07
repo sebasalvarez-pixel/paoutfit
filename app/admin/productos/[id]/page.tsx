@@ -2,12 +2,8 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { AddVariantForm } from "@/components/admin/AddVariantForm";
-import {
-  deleteProductImage,
-  updateProduct,
-  updateVariant,
-  uploadProductImage,
-} from "./actions";
+import { UploadImageForm } from "@/components/admin/UploadImageForm";
+import { deleteProductImage, updateProduct, updateVariant } from "./actions";
 
 export default async function EditProductPage({
   params,
@@ -187,46 +183,10 @@ export default async function EditProductPage({
 
       <div>
         <h2 className="font-heading text-xl text-ink mb-4">Subir foto</h2>
-        <form
-          action={async (formData: FormData) => {
-            "use server";
-            await uploadProductImage(formData);
-          }}
-          className="bg-white border border-ink/10 rounded p-4 flex flex-wrap items-end gap-4"
-        >
-          <input type="hidden" name="productId" value={product.id} />
-          <div>
-            <label className="text-xs text-ink/60">Color (opcional)</label>
-            <select
-              name="variantId"
-              defaultValue=""
-              className="border border-ink/20 px-2 py-2 mt-1 text-sm"
-            >
-              <option value="">General del producto</option>
-              {product.variants.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.colorName}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="text-xs text-ink/60">Archivo</label>
-            <input
-              type="file"
-              name="file"
-              accept="image/jpeg,image/png,image/webp"
-              required
-              className="block text-sm mt-1"
-            />
-          </div>
-          <button
-            type="submit"
-            className="bg-rose text-white px-6 py-2 text-sm uppercase tracking-wide hover:bg-plum transition-colors"
-          >
-            Subir
-          </button>
-        </form>
+        <UploadImageForm
+          productId={product.id}
+          variants={product.variants.map((v) => ({ id: v.id, colorName: v.colorName }))}
+        />
       </div>
     </div>
   );
