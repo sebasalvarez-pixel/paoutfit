@@ -114,8 +114,8 @@ export default async function AdminOrdersPage({
             <tr className="text-left text-ink/50 border-b border-ink/10">
               <th className="px-4 py-3">Pedido</th>
               <th className="px-4 py-3">Cliente</th>
-              <th className="px-4 py-3">Fecha</th>
-              <th className="px-4 py-3">Estado</th>
+              <th className="px-4 py-3 hidden sm:table-cell">Fecha</th>
+              <th className="px-4 py-3 hidden sm:table-cell">Estado</th>
               <th className="px-4 py-3 text-right">Total</th>
             </tr>
           </thead>
@@ -129,12 +129,20 @@ export default async function AdminOrdersPage({
                   >
                     {order.orderNumber}
                   </Link>
-                </td>
-                <td className="px-4 py-3">{order.customerName}</td>
-                <td className="px-4 py-3 text-ink/60">
-                  {order.createdAt.toLocaleDateString("es-CO")}
+                  <span className="block sm:hidden text-xs text-ink/40 mt-0.5">
+                    {order.createdAt.toLocaleDateString("es-CO")}
+                  </span>
                 </td>
                 <td className="px-4 py-3">
+                  {order.customerName}
+                  <span className="block sm:hidden mt-1">
+                    <OrderStatusBadge status={order.status} />
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-ink/60 hidden sm:table-cell">
+                  {order.createdAt.toLocaleDateString("es-CO")}
+                </td>
+                <td className="px-4 py-3 hidden sm:table-cell">
                   <OrderStatusBadge status={order.status} />
                 </td>
                 <td className="px-4 py-3 text-right">

@@ -25,10 +25,10 @@ export default async function AdminProductsPage() {
           <thead>
             <tr className="text-left text-ink/50 border-b border-ink/10">
               <th className="px-4 py-3">Producto</th>
-              <th className="px-4 py-3">Categoría</th>
+              <th className="px-4 py-3 hidden sm:table-cell">Categoría</th>
               <th className="px-4 py-3">Precio</th>
-              <th className="px-4 py-3">Inventario total</th>
-              <th className="px-4 py-3">Estado</th>
+              <th className="px-4 py-3 hidden sm:table-cell">Inventario total</th>
+              <th className="px-4 py-3 hidden sm:table-cell">Estado</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
@@ -39,16 +39,30 @@ export default async function AdminProductsPage() {
                 0,
               );
               return (
-                <tr key={product.id} className="border-b border-ink/5 last:border-0">
-                  <td className="px-4 py-3">{product.title}</td>
-                  <td className="px-4 py-3">{product.category}</td>
-                  <td className="px-4 py-3">{formatCop(product.basePriceCop)}</td>
+                <tr
+                  key={product.id}
+                  className="border-b border-ink/5 last:border-0 hover:bg-blush/40"
+                >
                   <td className="px-4 py-3">
+                    <Link href={`/admin/productos/${product.id}`} className="block">
+                      {product.title}
+                      <span className="block sm:hidden text-xs text-ink/40 mt-0.5">
+                        {product.category} ·{" "}
+                        <span className={totalStock === 0 ? "text-red-600" : ""}>
+                          {totalStock} unidades
+                        </span>{" "}
+                        · {product.isPublished ? "Publicado" : "Oculto"}
+                      </span>
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 hidden sm:table-cell">{product.category}</td>
+                  <td className="px-4 py-3">{formatCop(product.basePriceCop)}</td>
+                  <td className="px-4 py-3 hidden sm:table-cell">
                     <span className={totalStock === 0 ? "text-red-600" : ""}>
                       {totalStock} unidades
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 hidden sm:table-cell">
                     {product.isPublished ? (
                       <span className="text-emerald-700 text-xs">Publicado</span>
                     ) : (
@@ -58,9 +72,16 @@ export default async function AdminProductsPage() {
                   <td className="px-4 py-3 text-right">
                     <Link
                       href={`/admin/productos/${product.id}`}
-                      className="text-rose hover:underline"
+                      className="text-rose hover:underline hidden sm:inline"
                     >
                       Editar
+                    </Link>
+                    <Link
+                      href={`/admin/productos/${product.id}`}
+                      className="text-rose sm:hidden"
+                      aria-label="Editar"
+                    >
+                      →
                     </Link>
                   </td>
                 </tr>

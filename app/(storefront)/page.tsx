@@ -63,9 +63,11 @@ export default async function HomePage() {
             <Link
               key={cat}
               href={`/coleccion/${cat.toLowerCase()}`}
-              className="group relative h-64 sm:h-80 overflow-hidden flex items-end bg-blush"
+              className={`group relative h-64 sm:h-80 overflow-hidden flex ${
+                image ? "items-end" : "items-center justify-center border border-rose/20"
+              } bg-blush`}
             >
-              {image && (
+              {image ? (
                 <>
                   <Image
                     src={image.storagePath}
@@ -76,12 +78,16 @@ export default async function HomePage() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-ink/50 via-transparent to-transparent" />
                 </>
+              ) : (
+                <span className="absolute text-[11px] uppercase tracking-[0.2em] text-rose/50 top-5">
+                  Próximamente
+                </span>
               )}
               <span
                 className={`relative z-10 w-full text-center pb-6 font-heading text-2xl transition-colors ${
                   image
                     ? "text-white drop-shadow"
-                    : "text-ink group-hover:text-rose"
+                    : "text-ink group-hover:text-rose pb-0"
                 }`}
               >
                 {cat}
@@ -92,7 +98,7 @@ export default async function HomePage() {
       </section>
 
       {/* Destacados */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-24">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-8">
         <h2 className="font-heading text-3xl text-center text-ink mb-10">
           Los más comprados
         </h2>
