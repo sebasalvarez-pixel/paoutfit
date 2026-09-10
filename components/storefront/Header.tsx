@@ -4,18 +4,21 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useCartStore, cartCount } from "@/lib/cart-store";
-
-const CATEGORIES = [
-  { label: "Vestidos", href: "/coleccion/vestidos" },
-  { label: "Enterizos", href: "/coleccion/enterizos" },
-  { label: "Tops", href: "/coleccion/tops" },
-];
+import { useLocale } from "@/components/LocaleProvider";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const items = useCartStore((s) => s.items);
   const openCart = useCartStore((s) => s.open);
   const count = cartCount(items);
+  const { t } = useLocale();
+
+  const CATEGORIES = [
+    { label: t("nav_vestidos"), href: "/coleccion/vestidos" },
+    { label: t("nav_enterizos"), href: "/coleccion/enterizos" },
+    { label: t("nav_tops"), href: "/coleccion/tops" },
+  ];
 
   return (
     <header className="border-b border-rose/15 bg-ivory/95 backdrop-blur sticky top-0 z-40">
@@ -23,7 +26,7 @@ export function Header() {
         <button
           type="button"
           className="lg:hidden text-ink"
-          aria-label="Abrir menú"
+          aria-label={t("nav_abrir_menu")}
           onClick={() => setMenuOpen((v) => !v)}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -60,15 +63,16 @@ export function Header() {
         </Link>
 
         <div className="flex items-center gap-5">
+          <LanguageToggle />
           <Link
             href="/rastrear-pedido"
             className="hidden sm:inline text-xs tracking-wide uppercase text-ink/70 hover:text-rose transition-colors"
           >
-            Mi pedido
+            {t("nav_mi_pedido")}
           </Link>
           <button
             type="button"
-            aria-label="Ver carrito"
+            aria-label={t("nav_ver_carrito")}
             onClick={openCart}
             className="relative text-ink hover:text-rose transition-all duration-200 hover:scale-110 active:scale-90"
           >
@@ -114,7 +118,7 @@ export function Header() {
             onClick={() => setMenuOpen(false)}
             className="text-ink/80 hover:text-rose transition-colors"
           >
-            Mi pedido
+            {t("nav_mi_pedido")}
           </Link>
         </nav>
       )}

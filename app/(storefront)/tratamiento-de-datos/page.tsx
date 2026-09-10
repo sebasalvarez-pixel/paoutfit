@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getLocale } from "@/lib/i18n/get-locale";
 
 export const metadata: Metadata = {
   title: "Tratamiento de datos personales — PAOUTFIT",
@@ -6,7 +7,151 @@ export const metadata: Metadata = {
     "Política de tratamiento de datos personales de PAOUTFIT, conforme a la Ley 1581 de 2012 y sus decretos reglamentarios.",
 };
 
-export default function DataPolicyPage() {
+export default async function DataPolicyPage() {
+  const locale = await getLocale();
+
+  if (locale === "en") {
+    return (
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-16 prose prose-sm">
+        <p className="bg-blush text-ink/70 text-xs px-4 py-3 not-prose mb-8">
+          This is an English translation provided for convenience. The
+          Spanish version is the legally binding one under Colombian law.
+        </p>
+        <h1 className="font-heading text-3xl text-ink mb-2">
+          Personal Data Processing Policy
+        </h1>
+        <p className="text-ink/50 text-sm mb-8">
+          Last updated: {new Date().toLocaleDateString("en-US")}
+        </p>
+
+        <p>
+          In compliance with Colombian Law 1581 of 2012, Decree 1377 of 2013,
+          and other applicable regulations on personal data protection,{" "}
+          <strong>PAOUTFIT</strong> discloses its policy for the collection,
+          use, storage, and processing of the personal data of its customers
+          and visitors.
+        </p>
+
+        <h2>1. Data controller</h2>
+        <p>
+          PAOUTFIT (&quot;the brand&quot;), reachable at{" "}
+          <a href="mailto:paoutfitwear@gmail.com">paoutfitwear@gmail.com</a>{" "}
+          and on Instagram{" "}
+          <a
+            href="https://instagram.com/paoutfit.col"
+            target="_blank"
+            rel="noreferrer"
+          >
+            @paoutfit.col
+          </a>
+          , is responsible for processing the personal data collected through
+          this website.
+        </p>
+
+        <h2>2. Data we collect</h2>
+        <ul>
+          <li>
+            <strong>Identification and contact data:</strong> name, email
+            address, phone number.
+          </li>
+          <li>
+            <strong>Shipping data:</strong> address, city, and department/state.
+          </li>
+          <li>
+            <strong>Purchase data:</strong> products purchased, amounts, order
+            history.
+          </li>
+          <li>
+            <strong>Browsing data:</strong> where you came from (e.g. a social
+            network or an ad), for internal statistical purposes only.
+          </li>
+        </ul>
+        <p>
+          PAOUTFIT <strong>does not store credit or debit card data</strong>.
+          Payments are processed directly through certified payment gateways
+          (Wompi and/or Addi), who are responsible for the secure handling of
+          that information under their own policies.
+        </p>
+
+        <h2>3. Purpose of processing</h2>
+        <ul>
+          <li>Process, confirm, and ship your orders.</li>
+          <li>Communicate with you about the status of your purchase and shipment.</li>
+          <li>
+            Send you news, promotions, and discounts by email, if you
+            authorized it.
+          </li>
+          <li>Comply with applicable legal, accounting, and tax obligations.</li>
+          <li>Improve our website and customer service.</li>
+        </ul>
+
+        <h2>4. Who we share your data with</h2>
+        <p>
+          We only share the data strictly necessary with third parties that
+          help us operate the store:
+        </p>
+        <ul>
+          <li>
+            <strong>Payment gateways</strong> (Wompi, Addi) — to process your
+            payment securely.
+          </li>
+          <li>
+            <strong>Carrier</strong> (by default, ENVIA) — to deliver your
+            order.
+          </li>
+          <li>
+            <strong>Transactional email provider</strong> — to send you order
+            confirmations and updates.
+          </li>
+        </ul>
+        <p>We do not sell or rent your personal data to third parties.</p>
+
+        <h2>5. Your rights (Habeas Data)</h2>
+        <p>As the owner of your personal data, you have the right to:</p>
+        <ul>
+          <li>Know, update, and correct your personal data.</li>
+          <li>Request proof of the authorization granted for the processing of your data.</li>
+          <li>Be informed about how your personal data has been used.</li>
+          <li>
+            Revoke your authorization and/or request the deletion of your
+            data, when no legal or contractual duty prevents it.
+          </li>
+          <li>
+            File complaints with Colombia&apos;s Superintendencia de
+            Industria y Comercio for violations of data protection law.
+          </li>
+        </ul>
+        <p>
+          To exercise any of these rights, email us at{" "}
+          <a href="mailto:paoutfitwear@gmail.com">paoutfitwear@gmail.com</a>{" "}
+          and we will handle your request within the terms established by
+          law.
+        </p>
+
+        <h2>6. Information security</h2>
+        <p>
+          PAOUTFIT adopts reasonable technical and organizational measures to
+          protect your personal data against loss, misuse, unauthorized
+          access, alteration, or disclosure.
+        </p>
+
+        <h2>7. Retention period</h2>
+        <p>
+          Your personal data will be kept for as long as necessary to fulfill
+          the purposes described and applicable legal obligations (for
+          example, accounting and tax obligations).
+        </p>
+
+        <h2>8. Acceptance</h2>
+        <p>
+          By making a purchase or registering your email on this site, you
+          freely, previously, expressly, and knowingly accept this personal
+          data processing policy.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-16 prose prose-sm">
       <h1 className="font-heading text-3xl text-ink mb-2">

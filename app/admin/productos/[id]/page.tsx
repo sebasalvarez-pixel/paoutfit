@@ -67,6 +67,29 @@ export default async function EditProductPage({
             className="w-full border border-ink/20 px-3 py-2 mt-1 font-mono text-xs"
           />
         </div>
+        <div className="border-t border-ink/10 pt-4">
+          <p className="text-xs uppercase tracking-wide text-ink/50 mb-3">
+            Versión en inglés (para clientes internacionales)
+          </p>
+          <div>
+            <label className="text-xs text-ink/60">Nombre (inglés)</label>
+            <input
+              name="titleEn"
+              defaultValue={product.titleEn ?? ""}
+              placeholder={product.title}
+              className="w-full border border-ink/20 px-3 py-2 mt-1"
+            />
+          </div>
+          <div className="mt-3">
+            <label className="text-xs text-ink/60">Descripción (HTML, inglés)</label>
+            <textarea
+              name="descriptionHtmlEn"
+              defaultValue={product.descriptionHtmlEn ?? ""}
+              rows={5}
+              className="w-full border border-ink/20 px-3 py-2 mt-1 font-mono text-xs"
+            />
+          </div>
+        </div>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className="text-xs text-ink/60">Categoría</label>

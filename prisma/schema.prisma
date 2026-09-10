@@ -35,6 +35,8 @@ model Product {
   handle            String   @unique
   title             String
   descriptionHtml   String?  @map("description_html")
+  titleEn           String?  @map("title_en")
+  descriptionHtmlEn String?  @map("description_html_en")
   category          String
   basePriceCop      Int      @map("base_price_cop")
   compareAtPriceCop Int?     @map("compare_at_price_cop")

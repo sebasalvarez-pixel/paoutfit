@@ -17,6 +17,8 @@ export async function updateProduct(productId: string, formData: FormData) {
     data: {
       title: String(formData.get("title")),
       descriptionHtml: String(formData.get("descriptionHtml") ?? ""),
+      titleEn: String(formData.get("titleEn") ?? "") || null,
+      descriptionHtmlEn: String(formData.get("descriptionHtmlEn") ?? "") || null,
       category: String(formData.get("category")),
       basePriceCop: parseInt(String(formData.get("basePriceCop")), 10),
       isPublished: formData.get("isPublished") === "on",

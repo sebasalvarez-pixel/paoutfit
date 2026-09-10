@@ -2,19 +2,30 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import type { Locale } from "@/lib/i18n/dictionary";
 
 const lookupSchema = z.object({
   orderNumber: z.string().min(3),
   email: z.string().email(),
 });
 
-const STATUS_LABEL: Record<string, string> = {
-  pending: "Pendiente de pago",
-  paid: "Pagado — en preparación",
-  failed: "El pago falló",
-  cancelled: "Cancelado",
-  fulfilled: "Enviado",
-  refunded: "Reembolsado",
+const STATUS_LABEL: Record<Locale, Record<string, string>> = {
+  es: {
+    pending: "Pendiente de pago",
+    paid: "Pagado — en preparación",
+    failed: "El pago falló",
+    cancelled: "Cancelado",
+    fulfilled: "Enviado",
+    refunded: "Reembolsado",
+  },
+  en: {
+    pending: "Payment pending",
+    paid: "Paid — being prepared",
+    failed: "Payment failed",
+    cancelled: "Cancelled",
+    fulfilled: "Shipped",
+    refunded: "Refunded",
+  },
 };
 
 export type LookupResult =
@@ -31,13 +42,19 @@ export type LookupResult =
     }
   | { ok: false; error: string };
 
-export async function lookupOrder(input: {
-  orderNumber: string;
-  email: string;
-}): Promise<LookupResult> {
+export async function lookupOrder(
+  input: { orderNumber: string; email: string },
+  locale: Locale = "es",
+): Promise<LookupResult> {
   const parsed = lookupSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: "Ingresa un número de pedido y correo válidos." };
+    return {
+      ok: false,
+      error:
+        locale === "en"
+          ? "Enter a valid order number and email."
+          : "Ingresa un número de pedido y correo válidos.",
+    };
   }
 
   const order = await prisma.order.findFirst({
@@ -53,14 +70,17 @@ export async function lookupOrder(input: {
   if (!order) {
     return {
       ok: false,
-      error: "No encontramos un pedido con esos datos. Revisa el número de pedido y el correo.",
+      error:
+        locale === "en"
+          ? "We couldn't find an order with that information. Check the order number and email."
+          : "No encontramos un pedido con esos datos. Revisa el número de pedido y el correo.",
     };
   }
 
   return {
     ok: true,
     orderNumber: order.orderNumber,
-    statusLabel: STATUS_LABEL[order.status] ?? order.status,
+    statusLabel: STATUS_LABEL[locale][order.status] ?? order.status,
     totalCop: order.totalCop,
     createdAt: order.createdAt.toISOString(),
     items: order.items.map((i) => ({

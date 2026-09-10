@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { formatCop } from "@/lib/format";
 import { useCartStore } from "@/lib/cart-store";
+import { useLocale } from "@/components/LocaleProvider";
+import { translateColorName } from "@/lib/i18n/dictionary";
 import type {
   Product,
   ProductVariant,
@@ -15,6 +17,10 @@ type ProductWithVariants = Product & {
 };
 
 export function ProductDetail({ product }: { product: ProductWithVariants }) {
+  const { locale, t } = useLocale();
+  const title = (locale === "en" && product.titleEn) || product.title;
+  const descriptionHtml =
+    (locale === "en" && product.descriptionHtmlEn) || product.descriptionHtml;
   const variantsWithImages = product.variants.filter(
     (v) => v.images.length > 0,
   );
@@ -61,7 +67,7 @@ export function ProductDetail({ product }: { product: ProductWithVariants }) {
     addItem({
       variantId: selectedVariant.id,
       productHandle: product.handle,
-      productTitle: product.title,
+      productTitle: title,
       colorName: selectedVariant.colorName,
       unitPriceCop: selectedVariant.priceCop,
       imageSrc: selectedVariant.images[0]?.storagePath ?? null,
@@ -80,7 +86,7 @@ export function ProductDetail({ product }: { product: ProductWithVariants }) {
             <Image
               key={activeImage.id}
               src={activeImage.storagePath}
-              alt={activeImage.altText ?? product.title}
+              alt={activeImage.altText ?? title}
               fill
               sizes="(min-width: 1024px) 50vw, 100vw"
               className="object-cover"
@@ -88,7 +94,7 @@ export function ProductDetail({ product }: { product: ProductWithVariants }) {
             />
           ) : (
             <div className="h-full w-full flex items-center justify-center text-ink/30 uppercase text-sm">
-              Foto próximamente
+              {t("product_foto_proximamente")}
             </div>
           )}
           {images.length > 1 && (
@@ -96,7 +102,7 @@ export function ProductDetail({ product }: { product: ProductWithVariants }) {
               <button
                 type="button"
                 onClick={() => goToImage(-1)}
-                aria-label="Foto anterior"
+                aria-label={t("product_foto_anterior")}
                 className="absolute left-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full flex items-center justify-center bg-white/80 text-ink text-xl opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
               >
                 ‹
@@ -104,7 +110,7 @@ export function ProductDetail({ product }: { product: ProductWithVariants }) {
               <button
                 type="button"
                 onClick={() => goToImage(1)}
-                aria-label="Foto siguiente"
+                aria-label={t("product_foto_siguiente")}
                 className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full flex items-center justify-center bg-white/80 text-ink text-xl opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
               >
                 ›
@@ -147,19 +153,20 @@ export function ProductDetail({ product }: { product: ProductWithVariants }) {
 
       {/* Info */}
       <div>
-        <h1 className="font-heading text-3xl text-ink">{product.title}</h1>
+        <h1 className="font-heading text-3xl text-ink">{title}</h1>
         <p className="text-rose text-xl mt-2">
           {formatCop(selectedVariant?.priceCop ?? product.basePriceCop)}
         </p>
 
         <div
           className="prose prose-sm text-ink/70 mt-6 max-w-none"
-          dangerouslySetInnerHTML={{ __html: product.descriptionHtml ?? "" }}
+          dangerouslySetInnerHTML={{ __html: descriptionHtml ?? "" }}
         />
 
         <div className="mt-8">
           <p className="text-xs uppercase tracking-wide text-ink/60 mb-3">
-            Color: {selectedVariant?.colorName}
+            {t("product_color")}:{" "}
+            {selectedVariant && translateColorName(locale, selectedVariant.colorName)}
           </p>
           <div className="flex flex-wrap gap-2">
             {product.variants.map((variant) => (
@@ -174,7 +181,7 @@ export function ProductDetail({ product }: { product: ProductWithVariants }) {
                     : "border-ink/20 text-ink/70 hover:border-ink/50"
                 } ${variant.inventoryQty <= 0 ? "opacity-30 line-through" : ""}`}
               >
-                {variant.colorName}
+                {translateColorName(locale, variant.colorName)}
               </button>
             ))}
           </div>
@@ -186,10 +193,10 @@ export function ProductDetail({ product }: { product: ProductWithVariants }) {
           className="mt-8 w-full sm:w-auto px-10 py-3 bg-rose text-white uppercase text-sm tracking-wide hover:bg-plum active:scale-95 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
         >
           {outOfStock
-            ? "Agotado"
+            ? t("product_agotado")
             : added
-              ? "¡Agregado! Agregar otra vez"
-              : "Agregar al carrito"}
+              ? t("product_agregado")
+              : t("product_agregar_carrito")}
         </button>
       </div>
     </div>

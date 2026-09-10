@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useLocale } from "@/components/LocaleProvider";
 
 const SOCIAL_LINKS = [
   {
@@ -33,6 +36,8 @@ const SOCIAL_LINKS = [
 ];
 
 export function Footer() {
+  const { t } = useLocale();
+
   return (
     <footer className="bg-plum text-blush mt-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 grid gap-10 sm:grid-cols-4">
@@ -65,22 +70,22 @@ export function Footer() {
 
         <div className="text-sm">
           <h3 className="uppercase tracking-wide text-xs text-blush/60 mb-3">
-            Comprar
+            {t("footer_comprar")}
           </h3>
           <ul className="space-y-2">
             <li>
               <Link href="/coleccion/vestidos" className="hover:text-rose">
-                Vestidos
+                {t("nav_vestidos")}
               </Link>
             </li>
             <li>
               <Link href="/coleccion/enterizos" className="hover:text-rose">
-                Enterizos
+                {t("nav_enterizos")}
               </Link>
             </li>
             <li>
               <Link href="/coleccion/tops" className="hover:text-rose">
-                Tops
+                {t("nav_tops")}
               </Link>
             </li>
           </ul>
@@ -88,27 +93,27 @@ export function Footer() {
 
         <div className="text-sm">
           <h3 className="uppercase tracking-wide text-xs text-blush/60 mb-3">
-            Ayuda
+            {t("footer_ayuda")}
           </h3>
           <ul className="space-y-2">
             <li>
               <Link href="/informacion" className="hover:text-rose">
-                Envíos y pagos
+                {t("footer_envios_pagos")}
               </Link>
             </li>
             <li>
               <Link href="/informacion#cambios" className="hover:text-rose">
-                Cambios y devoluciones
+                {t("footer_cambios_devoluciones")}
               </Link>
             </li>
             <li>
               <Link href="/rastrear-pedido" className="hover:text-rose">
-                Rastrea tu pedido
+                {t("footer_rastrea_pedido")}
               </Link>
             </li>
             <li>
               <Link href="/tratamiento-de-datos" className="hover:text-rose">
-                Tratamiento de datos
+                {t("footer_tratamiento_datos")}
               </Link>
             </li>
           </ul>
@@ -116,7 +121,7 @@ export function Footer() {
 
         <div className="text-sm">
           <h3 className="uppercase tracking-wide text-xs text-blush/60 mb-3">
-            Contáctanos
+            {t("footer_contactanos")}
           </h3>
           <ul className="space-y-2">
             <li>
@@ -151,7 +156,7 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-blush/10 py-4 text-center text-xs text-blush/50">
-        © {new Date().getFullYear()} PAOUTFIT — Todos los derechos reservados.
+        © {new Date().getFullYear()} PAOUTFIT — {t("footer_derechos")}
       </div>
     </footer>
   );

@@ -2,20 +2,26 @@
 
 import { useState, useTransition } from "react";
 import { formatCop } from "@/lib/format";
+import { useLocale } from "@/components/LocaleProvider";
+import { translateColorName } from "@/lib/i18n/dictionary";
 import { lookupOrder, type LookupResult } from "./actions";
 
 export default function TrackOrderPage() {
   const [result, setResult] = useState<LookupResult | null>(null);
   const [isPending, startTransition] = useTransition();
+  const { locale, t } = useLocale();
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     startTransition(async () => {
-      const res = await lookupOrder({
-        orderNumber: String(form.get("orderNumber") ?? ""),
-        email: String(form.get("email") ?? ""),
-      });
+      const res = await lookupOrder(
+        {
+          orderNumber: String(form.get("orderNumber") ?? ""),
+          email: String(form.get("email") ?? ""),
+        },
+        locale,
+      );
       setResult(res);
     });
   }
@@ -23,24 +29,22 @@ export default function TrackOrderPage() {
   return (
     <div className="mx-auto max-w-xl px-4 sm:px-6 lg:px-8 py-16">
       <h1 className="font-heading text-3xl text-ink mb-2 text-center">
-        Rastrea tu pedido
+        {t("track_title")}
       </h1>
-      <p className="text-ink/60 text-sm text-center mb-8">
-        Ingresa tu número de pedido y el correo con el que compraste.
-      </p>
+      <p className="text-ink/60 text-sm text-center mb-8">{t("track_subtitle")}</p>
 
       <form onSubmit={handleSubmit} className="space-y-3">
         <input
           name="orderNumber"
           required
-          placeholder="Número de pedido, ej. PAO-ABC123"
+          placeholder={t("track_numero_pedido")}
           className="w-full border border-ink/20 px-3 py-2 bg-white uppercase"
         />
         <input
           name="email"
           type="email"
           required
-          placeholder="Correo electrónico"
+          placeholder={t("track_correo")}
           className="w-full border border-ink/20 px-3 py-2 bg-white"
         />
         <button
@@ -48,7 +52,7 @@ export default function TrackOrderPage() {
           disabled={isPending}
           className="w-full bg-rose text-white py-3 uppercase text-sm tracking-wide hover:bg-plum transition-colors disabled:opacity-60"
         >
-          {isPending ? "Buscando..." : "Buscar pedido"}
+          {isPending ? t("track_buscando") : t("track_buscar")}
         </button>
       </form>
 
@@ -59,22 +63,19 @@ export default function TrackOrderPage() {
       {result && result.ok && (
         <div className="mt-8 bg-blush p-6">
           <p className="text-sm text-ink/70">
-            Pedido <strong>{result.orderNumber}</strong>
+            {t("track_pedido")} <strong>{result.orderNumber}</strong>
           </p>
           <p className="text-lg text-rose mt-1">{result.statusLabel}</p>
 
           {result.trackingNumber && (
             <div className="mt-4 bg-white p-4 text-sm">
               <p className="text-ink/60">
-                Enviado con <strong>{result.carrier ?? "ENVIA"}</strong>
+                {t("track_enviado_con")} <strong>{result.carrier ?? "ENVIA"}</strong>
               </p>
               <p className="mt-1">
-                Número de guía: <strong>{result.trackingNumber}</strong>
+                {t("track_numero_guia")}: <strong>{result.trackingNumber}</strong>
               </p>
-              <p className="text-xs text-ink/50 mt-2">
-                Escríbenos por WhatsApp con este número si quieres que te
-                ayudemos a consultar el estado exacto de tu envío.
-              </p>
+              <p className="text-xs text-ink/50 mt-2">{t("track_whatsapp_ayuda")}</p>
             </div>
           )}
 
@@ -82,21 +83,22 @@ export default function TrackOrderPage() {
             {result.items.map((item, i) => (
               <li key={i} className="py-2 text-sm flex justify-between">
                 <span>
-                  {item.title} ({item.color}) × {item.quantity}
+                  {item.title} ({translateColorName(locale, item.color)}) ×{" "}
+                  {item.quantity}
                 </span>
               </li>
             ))}
           </ul>
 
           <div className="flex justify-between font-semibold mt-4 pt-3 border-t border-ink/10">
-            <span>Total</span>
+            <span>{t("track_total")}</span>
             <span>{formatCop(result.totalCop)}</span>
           </div>
         </div>
       )}
 
       <p className="text-center text-xs text-ink/50 mt-10">
-        ¿Necesitas ayuda con tu pedido? Escríbenos por{" "}
+        {t("track_ayuda_prefix")}{" "}
         <a
           href="https://wa.me/573114857551"
           target="_blank"
@@ -105,9 +107,9 @@ export default function TrackOrderPage() {
         >
           WhatsApp
         </a>{" "}
-        o revisa nuestra{" "}
+        {t("track_o_revisa")}{" "}
         <a href="/informacion" className="text-rose underline">
-          página de información
+          {t("track_pagina_info")}
         </a>
         .
       </p>

@@ -7,6 +7,8 @@ import {
   getHeroImage,
 } from "@/lib/products";
 import { ProductCard } from "@/components/storefront/ProductCard";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { t, CATEGORY_LABEL_KEY } from "@/lib/i18n/dictionary";
 
 // Siempre al día: catálogo, fotos e inventario cambian desde el panel
 // admin y deben verse reflejados de inmediato, sin depender de que la
@@ -14,6 +16,7 @@ import { ProductCard } from "@/components/storefront/ProductCard";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
+  const locale = await getLocale();
   const categories = getCategories();
   const featured = await getBestSellers(4);
   const heroImage = await getHeroImage();
@@ -28,17 +31,14 @@ export default async function HomePage() {
             Move. Feel. Be You.
           </p>
           <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl leading-tight text-ink">
-            Ropa deportiva para moverte como eres
+            {t(locale, "home_hero_title")}
           </h1>
-          <p className="text-ink/70 max-w-md">
-            Diseños femeninos, cómodos y versátiles para entrenar, salir o
-            simplemente ser tú.
-          </p>
+          <p className="text-ink/70 max-w-md">{t(locale, "home_hero_subtitle")}</p>
           <Link
             href="/coleccion/vestidos"
             className="inline-block w-fit bg-rose text-white px-8 py-3 uppercase text-sm tracking-wide hover:bg-plum transition-colors"
           >
-            Ver colección
+            {t(locale, "home_hero_cta")}
           </Link>
         </div>
         <div className="order-1 lg:order-2 relative min-h-[45vh] bg-blush">
@@ -80,7 +80,7 @@ export default async function HomePage() {
                 </>
               ) : (
                 <span className="absolute text-[11px] uppercase tracking-[0.2em] text-rose/50 top-5">
-                  Próximamente
+                  {t(locale, "home_proximamente")}
                 </span>
               )}
               <span
@@ -90,7 +90,7 @@ export default async function HomePage() {
                     : "text-ink group-hover:text-rose pb-0"
                 }`}
               >
-                {cat}
+                {t(locale, CATEGORY_LABEL_KEY[cat])}
               </span>
             </Link>
           );
@@ -100,7 +100,7 @@ export default async function HomePage() {
       {/* Destacados */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-8">
         <h2 className="font-heading text-3xl text-center text-ink mb-10">
-          Los más comprados
+          {t(locale, "home_mas_comprados")}
         </h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
           {featured.map((product) => (

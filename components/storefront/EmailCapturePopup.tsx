@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState, useTransition } from "react";
 import { subscribeEmail } from "@/lib/actions/subscribe";
+import { useLocale } from "@/components/LocaleProvider";
 
 const STORAGE_KEY = "paoutfit-popup-dismissed";
 
@@ -17,6 +18,7 @@ export function EmailCapturePopup({
     { status: "idle" } | { status: "success"; code: string } | { status: "error"; message: string }
   >({ status: "idle" });
   const [isPending, startTransition] = useTransition();
+  const { t } = useLocale();
 
   useEffect(() => {
     const dismissed = window.localStorage.getItem(STORAGE_KEY);
@@ -50,7 +52,7 @@ export function EmailCapturePopup({
       <div className="relative bg-ivory max-w-md w-full grid sm:grid-cols-2 shadow-xl">
         <button
           onClick={close}
-          aria-label="Cerrar"
+          aria-label={t("popup_cerrar")}
           className="absolute top-3 right-3 text-ink/50 hover:text-ink z-10"
         >
           ✕
@@ -71,10 +73,8 @@ export function EmailCapturePopup({
         <div className="p-8 flex flex-col justify-center text-center sm:text-left">
           {state.status === "success" ? (
             <>
-              <h2 className="font-heading text-2xl text-ink">¡Listo! 🎉</h2>
-              <p className="text-sm text-ink/70 mt-2">
-                Usa este código en tu compra:
-              </p>
+              <h2 className="font-heading text-2xl text-ink">{t("popup_listo")}</h2>
+              <p className="text-sm text-ink/70 mt-2">{t("popup_usa_codigo")}</p>
               <p className="mt-3 border border-dashed border-rose text-rose text-lg font-semibold py-2 px-3 text-center">
                 {state.code}
               </p>
@@ -82,16 +82,14 @@ export function EmailCapturePopup({
           ) : (
             <>
               <h2 className="font-heading text-2xl text-ink">
-                5% para ti
+                {t("popup_title")}
               </h2>
-              <p className="text-sm text-ink/70 mt-2">
-                Déjanos tu correo y recibe 5% de descuento en tu primera compra.
-              </p>
+              <p className="text-sm text-ink/70 mt-2">{t("popup_subtitle")}</p>
               <form onSubmit={handleSubmit} className="mt-4 space-y-2">
                 <input
                   type="email"
                   required
-                  placeholder="tu@correo.com"
+                  placeholder={t("popup_email_placeholder")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full border border-ink/20 px-3 py-2 text-sm bg-white"
@@ -104,7 +102,7 @@ export function EmailCapturePopup({
                   disabled={isPending}
                   className="w-full bg-rose text-white py-2 uppercase text-sm tracking-wide hover:bg-plum transition-colors disabled:opacity-60"
                 >
-                  {isPending ? "Enviando..." : "Quiero mi descuento"}
+                  {isPending ? t("popup_enviando") : t("popup_cta")}
                 </button>
               </form>
             </>
