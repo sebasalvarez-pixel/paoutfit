@@ -78,6 +78,11 @@ export const dictionary = {
       "La pasarela de pago todavía no está configurada. Contacta al equipo.",
     checkout_dev_mode: "Modo desarrollo: Wompi aún no está conectado con llaves reales. Pedido creado en estado pendiente.",
     checkout_simular_pago: "Simular pago aprobado",
+    checkout_metodo_pago: "Método de pago",
+    checkout_pagar_tarjeta_pse: "Tarjeta / PSE",
+    checkout_pagar_addi: "Addi — paga después",
+    checkout_cedula: "Número de cédula",
+    checkout_redirigiendo_addi: "Redirigiendo a Addi...",
 
     // Rastrear pedido
     track_title: "Rastrea tu pedido",
@@ -189,6 +194,11 @@ export const dictionary = {
       "The payment gateway isn't configured yet. Please contact us.",
     checkout_dev_mode: "Development mode: Wompi isn't connected with real keys yet. Order created as pending.",
     checkout_simular_pago: "Simulate approved payment",
+    checkout_metodo_pago: "Payment method",
+    checkout_pagar_tarjeta_pse: "Card / PSE",
+    checkout_pagar_addi: "Addi — pay later",
+    checkout_cedula: "ID number (cédula)",
+    checkout_redirigiendo_addi: "Redirecting to Addi...",
 
     // Rastrear pedido
     track_title: "Track your order",

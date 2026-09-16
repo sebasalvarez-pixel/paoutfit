@@ -9,31 +9,42 @@ import {
   isWompiConfigured,
   WOMPI_CHECKOUT_URL,
 } from "@/lib/wompi";
+import { createAddiApplication, getAddiConfig, isAddiConfigured } from "@/lib/addi";
 
 const FLAT_SHIPPING_COP = 12000;
 const FREE_SHIPPING_THRESHOLD_COP = 200000;
 
-const checkoutSchema = z.object({
-  customerName: z.string().min(2, "Ingresa tu nombre completo."),
-  customerEmail: z.string().email("Ingresa un correo válido."),
-  customerPhone: z.string().min(7, "Ingresa un teléfono válido."),
-  addressLine1: z.string().min(4, "Ingresa tu dirección."),
-  addressLine2: z.string().optional(),
-  city: z.string().min(2, "Ingresa tu ciudad."),
-  department: z.string().min(2, "Ingresa tu departamento."),
-  discountCode: z.string().optional(),
-  acceptedDataPolicy: z.boolean().refine((v) => v === true, {
-    message: "Debes aceptar la política de tratamiento de datos para continuar.",
-  }),
-  items: z
-    .array(
-      z.object({
-        variantId: z.string().uuid(),
-        quantity: z.number().int().min(1),
-      }),
-    )
-    .min(1, "Tu carrito está vacío."),
-});
+const checkoutSchema = z
+  .object({
+    customerName: z.string().min(2, "Ingresa tu nombre completo."),
+    customerEmail: z.string().email("Ingresa un correo válido."),
+    customerPhone: z.string().min(7, "Ingresa un teléfono válido."),
+    customerIdNumber: z.string().optional(),
+    addressLine1: z.string().min(4, "Ingresa tu dirección."),
+    addressLine2: z.string().optional(),
+    city: z.string().min(2, "Ingresa tu ciudad."),
+    department: z.string().min(2, "Ingresa tu departamento."),
+    discountCode: z.string().optional(),
+    paymentMethod: z.enum(["wompi", "addi"]).default("wompi"),
+    acceptedDataPolicy: z.boolean().refine((v) => v === true, {
+      message: "Debes aceptar la política de tratamiento de datos para continuar.",
+    }),
+    items: z
+      .array(
+        z.object({
+          variantId: z.string().uuid(),
+          quantity: z.number().int().min(1),
+        }),
+      )
+      .min(1, "Tu carrito está vacío."),
+  })
+  .refine(
+    (data) => data.paymentMethod !== "addi" || (data.customerIdNumber?.length ?? 0) >= 6,
+    {
+      message: "Para pagar con Addi necesitamos tu número de cédula.",
+      path: ["customerIdNumber"],
+    },
+  );
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 
@@ -44,10 +55,24 @@ export type CheckoutResult =
       totalCop: number;
       wompi: ReturnType<typeof buildWompiCheckoutFields> | null;
       wompiCheckoutUrl: string;
+      addiRedirectUrl: string | null;
       devPaymentAvailable: boolean;
       orderId: string;
     }
   | { ok: false; error: string };
+
+export async function getAddiAvailability(totalCop: number) {
+  if (!isAddiConfigured()) return { available: false, inRange: false };
+  const config = await getAddiConfig(totalCop);
+  if (!config) return { available: false, inRange: false };
+  const inRange = totalCop >= config.minAmount && totalCop <= config.maxAmount;
+  return {
+    available: config.isActiveAlly && config.isActivePayNow,
+    inRange,
+    minAmount: config.minAmount,
+    maxAmount: config.maxAmount,
+  };
+}
 
 export async function createOrder(
   input: CheckoutInput,
@@ -134,6 +159,7 @@ export async function createOrder(
       customerName: data.customerName,
       customerEmail: data.customerEmail,
       customerPhone: data.customerPhone,
+      customerIdNumber: data.customerIdNumber || null,
       shippingAddress: {
         line1: data.addressLine1,
         line2: data.addressLine2 ?? "",
@@ -145,7 +171,7 @@ export async function createOrder(
       shippingCop,
       totalCop,
       discountCodeId,
-      paymentProvider: "wompi",
+      paymentProvider: data.paymentMethod,
       dataPolicyAcceptedAt: new Date(),
       ...attribution,
       items: { create: orderItemsData },
@@ -154,6 +180,44 @@ export async function createOrder(
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const redirectUrl = `${appUrl}/pedido-confirmado/${order.orderNumber}`;
+
+  if (data.paymentMethod === "addi") {
+    const addiResult = await createAddiApplication({
+      orderNumber: order.orderNumber,
+      totalCop,
+      shippingCop,
+      items: orderItemsData.map((item) => ({
+        sku: item.sku,
+        name: item.productTitle,
+        quantity: item.quantity,
+        unitPriceCop: item.unitPriceCop,
+      })),
+      customer: {
+        idNumber: data.customerIdNumber!,
+        fullName: data.customerName,
+        email: data.customerEmail,
+        phone: data.customerPhone,
+      },
+      address: { line1: data.addressLine1, city: data.city },
+      callbackUrl: `${appUrl}/api/webhooks/addi`,
+      redirectionUrl: `${appUrl}/addi-retorno/${order.orderNumber}`,
+    });
+
+    if (!addiResult.ok) {
+      return { ok: false, error: addiResult.error };
+    }
+
+    return {
+      ok: true,
+      orderNumber: order.orderNumber,
+      totalCop,
+      orderId: order.id,
+      wompiCheckoutUrl: WOMPI_CHECKOUT_URL,
+      wompi: null,
+      addiRedirectUrl: addiResult.redirectUrl,
+      devPaymentAvailable: false,
+    };
+  }
 
   const wompiReady = isWompiConfigured();
 
@@ -171,6 +235,7 @@ export async function createOrder(
           customerEmail: data.customerEmail,
         })
       : null,
+    addiRedirectUrl: null,
     devPaymentAvailable: !wompiReady && process.env.NODE_ENV !== "production",
   };
 }

@@ -98,6 +98,7 @@ model Order {
   customerName     String          @map("customer_name")
   customerEmail    String          @map("customer_email")
   customerPhone    String          @map("customer_phone")
+  customerIdNumber String?         @map("customer_id_number")
   shippingAddress  Json            @map("shipping_address")
   subtotalCop      Int             @map("subtotal_cop")
   discountCop      Int             @default(0) @map("discount_cop")

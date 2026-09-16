@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useCartStore, cartTotal } from "@/lib/cart-store";
 import { formatCop } from "@/lib/format";
 import { useLocale } from "@/components/LocaleProvider";
 import { translateColorName } from "@/lib/i18n/dictionary";
-import { createOrder, devSimulatePayment } from "./actions";
+import { createOrder, devSimulatePayment, getAddiAvailability } from "./actions";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -25,6 +25,16 @@ export default function CheckoutPage() {
   );
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [addiAvailable, setAddiAvailable] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"wompi" | "addi">("wompi");
+  const [redirectingToAddi, setRedirectingToAddi] = useState(false);
+
+  useEffect(() => {
+    if (total <= 0) return;
+    getAddiAvailability(total).then((result) => {
+      setAddiAvailable(result.available && result.inRange);
+    });
+  }, [total]);
 
   if (items.length === 0 && !devOrderId) {
     return (
@@ -47,11 +57,13 @@ export default function CheckoutPage() {
         customerName: String(form.get("customerName") ?? ""),
         customerEmail: String(form.get("customerEmail") ?? ""),
         customerPhone: String(form.get("customerPhone") ?? ""),
+        customerIdNumber: String(form.get("customerIdNumber") ?? "") || undefined,
         addressLine1: String(form.get("addressLine1") ?? ""),
         addressLine2: String(form.get("addressLine2") ?? ""),
         city: String(form.get("city") ?? ""),
         department: String(form.get("department") ?? ""),
         discountCode: String(form.get("discountCode") ?? "") || undefined,
+        paymentMethod,
         acceptedDataPolicy: form.get("acceptedDataPolicy") === "on",
         items: items.map((i) => ({
           variantId: i.variantId,
@@ -61,6 +73,13 @@ export default function CheckoutPage() {
 
       if (!result.ok) {
         setError(result.error);
+        return;
+      }
+
+      if (result.addiRedirectUrl) {
+        setRedirectingToAddi(true);
+        clear();
+        window.location.href = result.addiRedirectUrl;
         return;
       }
 
@@ -122,6 +141,14 @@ export default function CheckoutPage() {
             placeholder={t("checkout_telefono")}
             className="w-full border border-ink/20 px-3 py-2 bg-white"
           />
+          {paymentMethod === "addi" && (
+            <input
+              name="customerIdNumber"
+              required
+              placeholder={t("checkout_cedula")}
+              className="w-full border border-ink/20 px-3 py-2 bg-white"
+            />
+          )}
         </section>
 
         <section className="space-y-3">
@@ -166,6 +193,38 @@ export default function CheckoutPage() {
           />
         </section>
 
+        {addiAvailable && (
+          <section className="space-y-3">
+            <h2 className="text-xs uppercase tracking-wide text-ink/60">
+              {t("checkout_metodo_pago")}
+            </h2>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setPaymentMethod("wompi")}
+                className={`px-4 py-3 text-sm border transition-colors ${
+                  paymentMethod === "wompi"
+                    ? "border-rose text-rose"
+                    : "border-ink/20 text-ink/70 hover:border-ink/50"
+                }`}
+              >
+                {t("checkout_pagar_tarjeta_pse")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentMethod("addi")}
+                className={`px-4 py-3 text-sm border transition-colors ${
+                  paymentMethod === "addi"
+                    ? "border-rose text-rose"
+                    : "border-ink/20 text-ink/70 hover:border-ink/50"
+                }`}
+              >
+                {t("checkout_pagar_addi")}
+              </button>
+            </div>
+          </section>
+        )}
+
         <label className="flex items-start gap-2 text-xs text-ink/70">
           <input
             type="checkbox"
@@ -205,10 +264,14 @@ export default function CheckoutPage() {
         ) : (
           <button
             type="submit"
-            disabled={isPending}
+            disabled={isPending || redirectingToAddi}
             className="w-full bg-rose text-white py-3 uppercase text-sm tracking-wide hover:bg-plum transition-colors disabled:opacity-60"
           >
-            {isPending ? t("checkout_procesando") : t("checkout_pagar_ahora")}
+            {redirectingToAddi
+              ? t("checkout_redirigiendo_addi")
+              : isPending
+                ? t("checkout_procesando")
+                : t("checkout_pagar_ahora")}
           </button>
         )}
       </form>
