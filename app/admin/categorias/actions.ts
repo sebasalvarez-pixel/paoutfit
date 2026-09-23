@@ -46,7 +46,7 @@ export async function createCategory(formData: FormData) {
       position: (last?.position ?? 0) + 1,
     },
   });
-  done(`Categoría "${name}" creada. Aparece en la tienda cuando publiques su primer producto.`);
+  done(`Categoría "${name}" creada. Ya aparece en el menú de la tienda.`);
 }
 
 export async function updateCategory(id: string, formData: FormData) {

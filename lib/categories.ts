@@ -15,27 +15,16 @@ export async function getAllCategories() {
 }
 
 /**
- * Categorías que se muestran en la tienda: visibles y con al menos un
- * producto publicado. Así una categoría nueva y vacía (por ejemplo
- * "Conjuntos" antes de subir el primero) no deja una página vacía en el
- * menú; aparece sola en cuanto se publica el primer producto.
+ * Categorías que se muestran en la tienda: todas las marcadas como
+ * visibles, tengan o no productos todavía (una categoría vacía muestra
+ * "Próximamente"). Para esconder una, se usa "Ocultar" en el panel.
  */
 export async function getStoreCategories(): Promise<StoreCategory[]> {
-  const [categories, counts] = await Promise.all([
-    prisma.category.findMany({
-      where: { isVisible: true },
-      orderBy: [{ position: "asc" }, { name: "asc" }],
-    }),
-    prisma.product.groupBy({
-      by: ["category"],
-      where: { isPublished: true },
-      _count: { _all: true },
-    }),
-  ]);
-  const withProducts = new Set(counts.map((c) => c.category));
-  return categories
-    .filter((c) => withProducts.has(c.name))
-    .map(({ name, nameEn, slug }) => ({ name, nameEn, slug }));
+  const categories = await prisma.category.findMany({
+    where: { isVisible: true },
+    orderBy: [{ position: "asc" }, { name: "asc" }],
+  });
+  return categories.map(({ name, nameEn, slug }) => ({ name, nameEn, slug }));
 }
 
 export async function getCategoryBySlug(slug: string) {
