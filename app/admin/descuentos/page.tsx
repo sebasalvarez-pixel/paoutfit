@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { AdminForm } from "@/components/admin/AdminForm";
 import { createDiscountCode, toggleDiscountCode } from "./actions";
 
 export default async function AdminDiscountsPage() {
@@ -10,8 +11,10 @@ export default async function AdminDiscountsPage() {
     <div className="max-w-3xl space-y-8">
       <h1 className="font-heading text-3xl text-ink">Códigos de descuento</h1>
 
-      <form
+      <AdminForm
         action={createDiscountCode}
+        successMessage="Código creado"
+        resetOnSuccess
         className="bg-white border border-ink/10 rounded p-5 flex flex-wrap items-end gap-4"
       >
         <div>
@@ -56,7 +59,7 @@ export default async function AdminDiscountsPage() {
         >
           Crear
         </button>
-      </form>
+      </AdminForm>
 
       <div className="bg-white border border-ink/10 rounded overflow-x-auto">
         <table className="w-full text-sm">
@@ -88,8 +91,9 @@ export default async function AdminDiscountsPage() {
                   )}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <form
+                  <AdminForm
                     action={toggleDiscountCode.bind(null, code.id, code.isActive)}
+                    successMessage={code.isActive ? "Código desactivado" : "Código activado"}
                   >
                     <button
                       type="submit"
@@ -97,7 +101,7 @@ export default async function AdminDiscountsPage() {
                     >
                       {code.isActive ? "Desactivar" : "Activar"}
                     </button>
-                  </form>
+                  </AdminForm>
                 </td>
               </tr>
             ))}

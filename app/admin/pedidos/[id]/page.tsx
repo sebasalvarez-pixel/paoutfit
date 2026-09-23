@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { formatCop } from "@/lib/format";
 import { OrderStatusBadge, STATUS_LABEL } from "@/components/admin/OrderStatusBadge";
 import { UnsavedChangesGuard } from "@/components/admin/UnsavedChangesGuard";
+import { AdminForm } from "@/components/admin/AdminForm";
 import { changeOrderStatus, markAsShipped, setInternationalShipping } from "./actions";
 
 const STATUSES = [
@@ -115,8 +116,9 @@ export default async function AdminOrderDetailPage({
             </p>
           )}
           {order.status === "pending" ? (
-            <form
+            <AdminForm
               action={boundSetInternationalShipping}
+              successMessage="Envío guardado y link de pago enviado al cliente"
               className="flex flex-wrap items-end gap-3"
             >
               <div>
@@ -139,7 +141,7 @@ export default async function AdminOrderDetailPage({
                   ? "Guardar y enviar link de pago"
                   : "Guardar y reenviar link de pago"}
               </button>
-            </form>
+            </AdminForm>
           ) : null}
           {!order.shippingQuotePending && order.status === "pending" && (
             <p className="text-xs text-ink/50 mt-3 break-all">
@@ -200,15 +202,16 @@ export default async function AdminOrderDetailPage({
             ✓ Enviado el {order.fulfilledAt.toLocaleString("es-CO")}
           </p>
         )}
-        <form
+        <AdminForm
           action={boundMarkAsShipped}
+          successMessage="Pedido marcado como enviado"
           className="flex flex-wrap items-end gap-3"
         >
           <div>
             <label className="text-xs text-ink/60">Transportadora</label>
             <input
               name="carrier"
-              defaultValue={order.carrier ?? "ENVIA"}
+              defaultValue={order.carrier ?? (order.isInternational ? "DHL" : "Interrapidísimo")}
               className="border border-ink/20 px-3 py-2 text-sm mt-1"
             />
           </div>
@@ -227,9 +230,9 @@ export default async function AdminOrderDetailPage({
           >
             Guardar y marcar como enviado
           </button>
-        </form>
+        </AdminForm>
         <p className="text-xs text-ink/40 mt-2">
-          Al guardar, el pedido pasa a &quot;fulfilled&quot; y el cliente
+          Al guardar, el pedido pasa a &quot;Enviado&quot; y el cliente
           verá la guía en la página de rastreo.
         </p>
       </div>
@@ -238,7 +241,11 @@ export default async function AdminOrderDetailPage({
         <h2 className="text-xs uppercase tracking-wide text-ink/50 mb-3">
           Cambiar estado
         </h2>
-        <form action={boundChangeStatus} className="flex items-center gap-3">
+        <AdminForm
+          action={boundChangeStatus}
+          successMessage="Estado actualizado"
+          className="flex items-center gap-3"
+        >
           <select
             name="status"
             defaultValue={order.status}
@@ -256,7 +263,7 @@ export default async function AdminOrderDetailPage({
           >
             Actualizar
           </button>
-        </form>
+        </AdminForm>
         <p className="text-xs text-ink/40 mt-2">
           Si cambias a &quot;Pagado&quot;, se descuenta inventario y se envía
           el correo de confirmación (si no se había enviado antes).

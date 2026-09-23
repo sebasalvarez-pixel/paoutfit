@@ -5,6 +5,7 @@ import { getAllCategories } from "@/lib/categories";
 import { AddVariantForm } from "@/components/admin/AddVariantForm";
 import { UploadImageForm } from "@/components/admin/UploadImageForm";
 import { UnsavedChangesGuard } from "@/components/admin/UnsavedChangesGuard";
+import { AdminForm } from "@/components/admin/AdminForm";
 import {
   deleteProductImage,
   setCoverImage,
@@ -51,7 +52,11 @@ export default async function EditProductPage({
         <p className="text-ink/50 text-sm">/{product.handle}</p>
       </div>
 
-      <form action={boundUpdateProduct} className="space-y-4 bg-white border border-ink/10 rounded p-6">
+      <AdminForm
+        action={boundUpdateProduct}
+        successMessage="Producto guardado"
+        className="space-y-4 bg-white border border-ink/10 rounded p-6"
+      >
         <h2 className="text-xs uppercase tracking-wide text-ink/50">
           Información general
         </h2>
@@ -142,7 +147,7 @@ export default async function EditProductPage({
         >
           Guardar cambios
         </button>
-      </form>
+      </AdminForm>
 
       <div>
         <h2 className="font-heading text-xl text-ink mb-4">
@@ -160,8 +165,9 @@ export default async function EditProductPage({
                 key={variant.id}
                 className="bg-white border border-ink/10 rounded p-4 flex flex-wrap items-end gap-4"
               >
-                <form
+                <AdminForm
                   action={boundUpdateVariant}
+                  successMessage={`Color ${variant.colorName} guardado`}
                   className="flex flex-wrap items-end gap-4"
                 >
                   <div>
@@ -176,14 +182,15 @@ export default async function EditProductPage({
                     </p>
                     <p className="text-[11px] text-ink/40">{variant.sku}</p>
                     {variantIndex !== 0 && (
-                      <form action={setCoverVariant.bind(null, product.id, variant.id)}>
-                        <button
-                          type="submit"
-                          className="text-[10px] text-ink/50 underline hover:text-rose mt-1"
-                        >
-                          Usar este color como portada
-                        </button>
-                      </form>
+                      // Un formulario no puede ir dentro de otro: el botón
+                      // apunta a un formulario aparte (más abajo) con "form".
+                      <button
+                        type="submit"
+                        form={`cover-${variant.id}`}
+                        className="text-[10px] text-ink/50 underline hover:text-rose mt-1"
+                      >
+                        Usar este color como portada
+                      </button>
                     )}
                   </div>
                   <div>
@@ -218,7 +225,13 @@ export default async function EditProductPage({
                   >
                     Guardar
                   </button>
-                </form>
+                </AdminForm>
+                {variantIndex !== 0 && (
+                  <form
+                    id={`cover-${variant.id}`}
+                    action={setCoverVariant.bind(null, product.id, variant.id)}
+                  />
+                )}
                 <div className="flex gap-1 ml-auto">
                   {variant.images.map((img, index) => (
                     <div key={img.id} className="relative h-14 w-12 group">

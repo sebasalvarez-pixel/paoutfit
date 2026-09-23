@@ -9,7 +9,13 @@ export async function createDiscountCode(formData: FormData) {
   const value = parseInt(String(formData.get("value")), 10);
   const maxUsesRaw = String(formData.get("maxUses") ?? "");
 
-  if (!code || Number.isNaN(value)) return;
+  // Al lanzar un error, el formulario muestra "No se pudo guardar".
+  if (!code || Number.isNaN(value) || value <= 0) {
+    throw new Error("Código o valor no válido.");
+  }
+  if (type === "percentage" && value > 100) {
+    throw new Error("El porcentaje no puede pasar de 100.");
+  }
 
   await prisma.discountCode.create({
     data: {
