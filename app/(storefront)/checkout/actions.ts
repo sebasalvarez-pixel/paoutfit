@@ -93,7 +93,9 @@ export async function getAddiAvailability(totalCop: number) {
   if (!config) return { available: false, inRange: false };
   const inRange = totalCop >= config.minAmount && totalCop <= config.maxAmount;
   return {
-    available: config.isActiveAlly && config.isActivePayNow,
+    // isActivePayNow es otro producto de Addi (pago inmediato); nosotros usamos
+    // solicitudes online, que solo dependen de que el aliado esté activo.
+    available: config.isActiveAlly,
     inRange,
     minAmount: config.minAmount,
     maxAmount: config.maxAmount,
