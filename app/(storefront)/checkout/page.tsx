@@ -115,8 +115,9 @@ export default function CheckoutPage() {
       }
 
       if (result.addiRedirectUrl) {
+        // El carrito se vacía al confirmarse el pago (OrderStatusWatcher),
+        // así si el cliente cancela en Addi no pierde lo que había elegido.
         setRedirectingToAddi(true);
-        clear();
         window.location.href = result.addiRedirectUrl;
         return;
       }
@@ -294,29 +295,76 @@ export default function CheckoutPage() {
             <h2 className="text-xs uppercase tracking-wide text-ink/60">
               {t("checkout_metodo_pago")}
             </h2>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setPaymentMethod("wompi")}
-                className={`px-4 py-3 text-sm border transition-colors ${
-                  paymentMethod === "wompi"
-                    ? "border-rose text-rose"
-                    : "border-ink/20 text-ink/70 hover:border-ink/50"
-                }`}
-              >
-                {t("checkout_pagar_tarjeta_pse")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setPaymentMethod("addi")}
-                className={`px-4 py-3 text-sm border transition-colors ${
-                  paymentMethod === "addi"
-                    ? "border-rose text-rose"
-                    : "border-ink/20 text-ink/70 hover:border-ink/50"
-                }`}
-              >
-                {t("checkout_pagar_addi")}
-              </button>
+            <div className="space-y-2" role="radiogroup">
+              {(
+                [
+                  {
+                    id: "wompi",
+                    title: t("checkout_pagar_tarjeta_pse"),
+                    desc: t("checkout_pago_tarjeta_desc"),
+                    icon: (
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        aria-hidden="true"
+                      >
+                        <rect x="2.5" y="5" width="19" height="14" rx="2" />
+                        <path d="M2.5 10h19M6 15h4" />
+                      </svg>
+                    ),
+                  },
+                  {
+                    id: "addi",
+                    title: t("checkout_pagar_addi"),
+                    desc: t("checkout_pago_addi_desc"),
+                    icon: (
+                      <span className="text-base font-semibold lowercase leading-none tracking-tight">
+                        addi
+                      </span>
+                    ),
+                  },
+                ] as const
+              ).map((m) => {
+                const selected = paymentMethod === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => setPaymentMethod(m.id)}
+                    className={`flex w-full items-center gap-3 border bg-white px-4 py-3 text-left transition-colors ${
+                      selected
+                        ? "border-rose ring-1 ring-rose"
+                        : "border-ink/20 hover:border-ink/50"
+                    }`}
+                  >
+                    <span
+                      className={`flex h-10 w-12 shrink-0 items-center justify-center rounded ${
+                        selected ? "bg-rose text-white" : "bg-blush text-ink/70"
+                      }`}
+                    >
+                      {m.icon}
+                    </span>
+                    <span className="flex-1">
+                      <span className="block text-sm text-ink">{m.title}</span>
+                      <span className="block text-xs text-ink/60">{m.desc}</span>
+                    </span>
+                    <span
+                      className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
+                        selected ? "border-rose" : "border-ink/30"
+                      }`}
+                    >
+                      {selected && (
+                        <span className="h-2 w-2 rounded-full bg-rose" />
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </section>
         )}

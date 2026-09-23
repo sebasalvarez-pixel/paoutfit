@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import OrderStatusWatcher from "@/components/storefront/OrderStatusWatcher";
 import { formatCop } from "@/lib/format";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { t, translateColorName, type Locale } from "@/lib/i18n/dictionary";
@@ -44,8 +45,11 @@ export default async function OrderConfirmedPage({
           ? t(locale, "order_cotizacion_titulo")
           : order.status === "paid"
             ? t(locale, "order_gracias")
-            : t(locale, "order_recibido")}
+            : order.status === "failed"
+              ? t(locale, "order_pago_rechazado")
+              : t(locale, "order_recibido")}
       </h1>
+      <OrderStatusWatcher status={order.status} />
       <p className="text-ink/60 mb-6">
         {t(locale, "track_pedido")} <strong>{order.orderNumber}</strong>
         {!order.shippingQuotePending && (
@@ -55,6 +59,16 @@ export default async function OrderConfirmedPage({
       {order.shippingQuotePending && (
         <p className="text-sm text-ink/70 bg-blush px-4 py-3 mb-6">
           {t(locale, "order_cotizacion_texto")}
+        </p>
+      )}
+      {!order.shippingQuotePending && order.status === "pending" && (
+        <p className="text-sm text-ink/70 bg-blush px-4 py-3 mb-6">
+          {t(locale, "order_pago_esperando")}
+        </p>
+      )}
+      {!order.shippingQuotePending && order.status === "failed" && (
+        <p className="text-sm text-ink/70 bg-blush px-4 py-3 mb-6">
+          {t(locale, "order_pago_rechazado_texto")}
         </p>
       )}
 
@@ -82,10 +96,12 @@ export default async function OrderConfirmedPage({
       </div>
 
       <Link
-        href="/"
+        href={order.status === "paid" || order.shippingQuotePending ? "/" : "/checkout"}
         className="inline-block bg-rose text-white px-8 py-3 uppercase text-sm tracking-wide hover:bg-plum transition-colors"
       >
-        {t(locale, "order_seguir_comprando")}
+        {order.status === "paid" || order.shippingQuotePending
+          ? t(locale, "order_seguir_comprando")
+          : t(locale, "order_reintentar_pago")}
       </Link>
     </div>
   );

@@ -81,6 +81,8 @@ export const dictionary = {
     checkout_metodo_pago: "Método de pago",
     checkout_pagar_tarjeta_pse: "Tarjeta / PSE",
     checkout_pagar_addi: "Addi — paga después",
+    checkout_pago_tarjeta_desc: "Tarjeta débito o crédito, PSE, Nequi",
+    checkout_pago_addi_desc: "Compra hoy y paga en cuotas, sin tarjeta",
     checkout_cedula: "Número de cédula",
     checkout_redirigiendo_addi: "Redirigiendo a Addi...",
     checkout_tipo_envio: "Tipo de envío",
@@ -139,6 +141,12 @@ export const dictionary = {
     // Confirmación de pedido
     order_gracias: "¡Gracias por tu compra!",
     order_recibido: "Pedido recibido",
+    order_pago_rechazado: "Pago no completado",
+    order_pago_esperando:
+      "Estamos esperando la confirmación de tu pago. Esta página se actualiza sola. Si cancelaste, puedes intentarlo de nuevo.",
+    order_pago_rechazado_texto:
+      "El pago no se completó y no se te cobró. Puedes intentarlo de nuevo con el mismo u otro método.",
+    order_reintentar_pago: "Intentar de nuevo",
     order_seguir_comprando: "Seguir comprando",
 
     // Language toggle
@@ -222,6 +230,8 @@ export const dictionary = {
     checkout_metodo_pago: "Payment method",
     checkout_pagar_tarjeta_pse: "Card / PSE",
     checkout_pagar_addi: "Addi — pay later",
+    checkout_pago_tarjeta_desc: "Debit or credit card, PSE, Nequi",
+    checkout_pago_addi_desc: "Buy today and pay in installments, no card needed",
     checkout_cedula: "ID number (cédula)",
     checkout_redirigiendo_addi: "Redirecting to Addi...",
     checkout_tipo_envio: "Shipping type",
@@ -280,6 +290,12 @@ export const dictionary = {
     // Order confirmation
     order_gracias: "Thanks for your purchase!",
     order_recibido: "Order received",
+    order_pago_rechazado: "Payment not completed",
+    order_pago_esperando:
+      "We're waiting for your payment confirmation. This page updates by itself. If you cancelled, you can try again.",
+    order_pago_rechazado_texto:
+      "The payment wasn't completed and you were not charged. You can try again with the same or another method.",
+    order_reintentar_pago: "Try again",
     order_seguir_comprando: "Keep shopping",
 
     // Language toggle
