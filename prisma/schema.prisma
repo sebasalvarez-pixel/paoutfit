@@ -204,3 +204,15 @@ model Subscriber {
 
   @@map("subscribers")
 }
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  nameEn    String?  @map("name_en")
+  slug      String   @unique
+  position  Int      @default(0)
+  isVisible Boolean  @default(true) @map("is_visible")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("categories")
+}

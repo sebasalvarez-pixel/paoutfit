@@ -6,19 +6,20 @@ import { useState } from "react";
 import { useCartStore, cartCount } from "@/lib/cart-store";
 import { useLocale } from "@/components/LocaleProvider";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { categoryLabel } from "@/lib/category-label";
+import type { StoreCategory } from "@/lib/categories";
 
-export function Header() {
+export function Header({ categories }: { categories: StoreCategory[] }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const items = useCartStore((s) => s.items);
   const openCart = useCartStore((s) => s.open);
   const count = cartCount(items);
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
 
-  const CATEGORIES = [
-    { label: t("nav_vestidos"), href: "/coleccion/vestidos" },
-    { label: t("nav_enterizos"), href: "/coleccion/enterizos" },
-    { label: t("nav_tops"), href: "/coleccion/tops" },
-  ];
+  const CATEGORIES = categories.map((c) => ({
+    label: categoryLabel(c, locale),
+    href: `/coleccion/${c.slug}`,
+  }));
 
   return (
     <header className="border-b border-rose/15 bg-ivory/95 backdrop-blur sticky top-0 z-40">
@@ -64,6 +65,16 @@ export function Header() {
 
         <div className="flex items-center gap-5">
           <LanguageToggle />
+          <Link
+            href="/buscar"
+            aria-label={t("nav_buscar")}
+            className="text-ink hover:text-rose transition-all duration-200 hover:scale-110 active:scale-90"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.5" />
+              <path d="m16 16 4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </Link>
           <Link
             href="/rastrear-pedido"
             className="hidden sm:inline text-xs tracking-wide uppercase text-ink/70 hover:text-rose transition-colors"

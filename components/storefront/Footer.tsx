@@ -3,6 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useLocale } from "@/components/LocaleProvider";
+import { categoryLabel } from "@/lib/category-label";
+import type { StoreCategory } from "@/lib/categories";
 
 const SOCIAL_LINKS = [
   {
@@ -35,8 +37,8 @@ const SOCIAL_LINKS = [
   },
 ];
 
-export function Footer() {
-  const { t } = useLocale();
+export function Footer({ categories }: { categories: StoreCategory[] }) {
+  const { t, locale } = useLocale();
 
   return (
     <footer className="bg-plum text-blush mt-24">
@@ -73,21 +75,13 @@ export function Footer() {
             {t("footer_comprar")}
           </h3>
           <ul className="space-y-2">
-            <li>
-              <Link href="/coleccion/vestidos" className="hover:text-rose">
-                {t("nav_vestidos")}
-              </Link>
-            </li>
-            <li>
-              <Link href="/coleccion/enterizos" className="hover:text-rose">
-                {t("nav_enterizos")}
-              </Link>
-            </li>
-            <li>
-              <Link href="/coleccion/tops" className="hover:text-rose">
-                {t("nav_tops")}
-              </Link>
-            </li>
+            {categories.map((c) => (
+              <li key={c.slug}>
+                <Link href={`/coleccion/${c.slug}`} className="hover:text-rose">
+                  {categoryLabel(c, locale)}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
 

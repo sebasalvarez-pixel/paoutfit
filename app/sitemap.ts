@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
-import { getCategories } from "@/lib/products";
+import { getStoreCategories } from "@/lib/categories";
 
 // Se genera al momento de pedirlo, no durante el build: así un despliegue
 // no falla si la base de datos está pausada o caída en ese momento.
@@ -16,8 +16,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     { url: baseUrl, changeFrequency: "daily", priority: 1 },
-    ...getCategories().map((category) => ({
-      url: `${baseUrl}/coleccion/${category.toLowerCase()}`,
+    ...(await getStoreCategories()).map((category) => ({
+      url: `${baseUrl}/coleccion/${category.slug}`,
       changeFrequency: "daily" as const,
       priority: 0.8,
     })),

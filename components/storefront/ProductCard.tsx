@@ -11,7 +11,13 @@ type ProductWithVariants = Product & {
   variants: (ProductVariant & { images: ProductImage[] })[];
 };
 
-export function ProductCard({ product }: { product: ProductWithVariants }) {
+export function ProductCard({
+  product,
+  bestSeller = false,
+}: {
+  product: ProductWithVariants;
+  bestSeller?: boolean;
+}) {
   const { locale, t } = useLocale();
   const title = (locale === "en" && product.titleEn) || product.title;
   const hasStock = product.variants.some((v) => v.inventoryQty > 0);
@@ -68,6 +74,17 @@ export function ProductCard({ product }: { product: ProductWithVariants }) {
         {!hasStock && (
           <span className="absolute top-3 left-3 bg-plum text-blush text-[10px] uppercase tracking-wide px-2 py-1">
             {t("product_agotado")}
+          </span>
+        )}
+        {bestSeller && (
+          <span
+            className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-white/95 text-rose text-[10px] uppercase tracking-wide px-2 py-1 shadow-sm"
+            title={t("product_mas_vendido")}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="m12 2.5 2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9L12 2.5Z" />
+            </svg>
+            {t("product_mas_vendido")}
           </span>
         )}
         {activeImage && hasStock && (

@@ -1,17 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getCategories, getProductsByCategory } from "@/lib/products";
-import { ProductCard } from "@/components/storefront/ProductCard";
+import { getBestSellerIds, getProductsByCategory, getPublishedProducts } from "@/lib/products";
+import { getCategoryBySlug, getStoreCategories } from "@/lib/categories";
+import { categoryLabel } from "@/lib/category-label";
+import { ProductBrowser } from "@/components/storefront/ProductBrowser";
 import { getLocale } from "@/lib/i18n/get-locale";
-import { t, categoryProductCount, CATEGORY_LABEL_KEY } from "@/lib/i18n/dictionary";
+import { t } from "@/lib/i18n/dictionary";
 
-const SLUG_TO_CATEGORY: Record<string, string> = Object.fromEntries(
-  getCategories().map((c) => [c.toLowerCase(), c]),
-);
-
-export function generateStaticParams() {
-  return getCategories().map((c) => ({ category: c.toLowerCase() }));
-}
+// "todos" no es una categoría guardada: muestra todo el catálogo.
+const ALL_SLUG = "todos";
 
 // Igual que el home: el catálogo cambia desde el panel admin y debe
 // verse al día sin depender de que una re-validación llegue a tiempo.
@@ -23,11 +20,18 @@ export async function generateMetadata({
   params: Promise<{ category: string }>;
 }): Promise<Metadata> {
   const { category: slug } = await params;
-  const category = SLUG_TO_CATEGORY[slug.toLowerCase()];
-  if (!category) return {};
+  if (slug.toLowerCase() === ALL_SLUG) {
+    return {
+      title: "Todos los productos — PAOUTFIT",
+      description:
+        "Toda la colección PAOUTFIT: ropa deportiva y athleisure para mujer, cómoda y con estilo.",
+    };
+  }
+  const category = await getCategoryBySlug(slug);
+  if (!category || !category.isVisible) return {};
   return {
-    title: `${category} — PAOUTFIT`,
-    description: `Descubre nuestra colección de ${category.toLowerCase()}: ropa deportiva y athleisure para mujer, cómoda y con estilo.`,
+    title: `${category.name} — PAOUTFIT`,
+    description: `Descubre nuestra colección de ${category.name.toLowerCase()}: ropa deportiva y athleisure para mujer, cómoda y con estilo.`,
   };
 }
 
@@ -37,29 +41,32 @@ export default async function CollectionPage({
   params: Promise<{ category: string }>;
 }) {
   const { category: slug } = await params;
-  const category = SLUG_TO_CATEGORY[slug.toLowerCase()];
-  if (!category) notFound();
-
+  const isAll = slug.toLowerCase() === ALL_SLUG;
   const locale = await getLocale();
-  const products = await getProductsByCategory(category);
+
+  const category = isAll ? null : await getCategoryBySlug(slug);
+  if (!isAll && (!category || !category.isVisible)) notFound();
+
+  const [products, bestSellerIds, storeCategories] = await Promise.all([
+    category ? getProductsByCategory(category.name) : getPublishedProducts(),
+    getBestSellerIds(),
+    isAll ? getStoreCategories() : Promise.resolve(undefined),
+  ]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="font-heading text-4xl text-center text-ink mb-2">
-        {t(locale, CATEGORY_LABEL_KEY[category as keyof typeof CATEGORY_LABEL_KEY])}
+      <h1 className="font-heading text-4xl text-center text-ink mb-8">
+        {category ? categoryLabel(category, locale) : t(locale, "todos_titulo")}
       </h1>
-      <p className="text-center text-ink/60 text-sm mb-10">
-        {categoryProductCount(locale, products.length)}
-      </p>
 
       {products.length === 0 ? (
         <p className="text-center text-ink/50">{t(locale, "category_empty")}</p>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <ProductBrowser
+          products={products}
+          bestSellerIds={bestSellerIds}
+          categories={storeCategories}
+        />
       )}
     </div>
   );

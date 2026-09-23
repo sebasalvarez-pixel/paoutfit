@@ -1,14 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import {
-  getBestSellers,
-  getCategories,
-  getCategoryImages,
-  getHeroImage,
-} from "@/lib/products";
+import { getBestSellers, getBestSellerIds, getHeroImage } from "@/lib/products";
+import { getCategoryImages, getStoreCategories } from "@/lib/categories";
+import { categoryLabel } from "@/lib/category-label";
 import { ProductCard } from "@/components/storefront/ProductCard";
 import { getLocale } from "@/lib/i18n/get-locale";
-import { t, CATEGORY_LABEL_KEY } from "@/lib/i18n/dictionary";
+import { t } from "@/lib/i18n/dictionary";
 
 // Siempre al día: catálogo, fotos e inventario cambian desde el panel
 // admin y deben verse reflejados de inmediato, sin depender de que la
@@ -17,10 +14,19 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const locale = await getLocale();
-  const categories = getCategories();
-  const featured = await getBestSellers(4);
-  const heroImage = await getHeroImage();
-  const categoryImages = await getCategoryImages();
+  const categories = await getStoreCategories();
+  const [featured, bestSellerIds, heroImage, categoryImages] = await Promise.all([
+    getBestSellers(4),
+    getBestSellerIds(),
+    getHeroImage(),
+    getCategoryImages(categories),
+  ]);
+  const categoryGridCols =
+    categories.length >= 4
+      ? "sm:grid-cols-2 lg:grid-cols-4"
+      : categories.length === 3
+        ? "sm:grid-cols-3"
+        : "sm:grid-cols-2";
 
   return (
     <div>
@@ -35,7 +41,7 @@ export default async function HomePage() {
           </h1>
           <p className="text-ink/70 max-w-md">{t(locale, "home_hero_subtitle")}</p>
           <Link
-            href="/coleccion/vestidos"
+            href="/coleccion/todos"
             className="inline-block w-fit bg-rose text-white px-8 py-3 uppercase text-sm tracking-wide hover:bg-plum transition-colors"
           >
             {t(locale, "home_hero_cta")}
@@ -56,13 +62,15 @@ export default async function HomePage() {
       </section>
 
       {/* Categorías */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 grid sm:grid-cols-3 gap-6">
+      <section
+        className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 grid gap-6 ${categoryGridCols}`}
+      >
         {categories.map((cat) => {
-          const image = categoryImages[cat];
+          const image = categoryImages[cat.slug];
           return (
             <Link
-              key={cat}
-              href={`/coleccion/${cat.toLowerCase()}`}
+              key={cat.slug}
+              href={`/coleccion/${cat.slug}`}
               className={`group relative h-64 sm:h-80 overflow-hidden flex ${
                 image ? "items-end" : "items-center justify-center border border-rose/20"
               } bg-blush`}
@@ -90,7 +98,7 @@ export default async function HomePage() {
                     : "text-ink group-hover:text-rose pb-0"
                 }`}
               >
-                {t(locale, CATEGORY_LABEL_KEY[cat])}
+                {categoryLabel(cat, locale)}
               </span>
             </Link>
           );
@@ -104,7 +112,11 @@ export default async function HomePage() {
         </h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
           {featured.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard
+              key={product.id}
+              product={product}
+              bestSeller={bestSellerIds.includes(product.id)}
+            />
           ))}
         </div>
       </section>

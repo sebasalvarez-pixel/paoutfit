@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getAllCategories } from "@/lib/categories";
 import { AddVariantForm } from "@/components/admin/AddVariantForm";
 import { UploadImageForm } from "@/components/admin/UploadImageForm";
 import { UnsavedChangesGuard } from "@/components/admin/UnsavedChangesGuard";
@@ -28,6 +29,11 @@ export default async function EditProductPage({
     },
   });
   if (!product) notFound();
+
+  const categories = await getAllCategories();
+  const categoryNames = categories.map((c) => c.name);
+  // Por si el producto tiene una categoría que ya no existe en la lista.
+  if (!categoryNames.includes(product.category)) categoryNames.push(product.category);
 
   const boundUpdateProduct = updateProduct.bind(null, product.id);
 
@@ -98,10 +104,18 @@ export default async function EditProductPage({
               defaultValue={product.category}
               className="w-full border border-ink/20 px-3 py-2 mt-1"
             >
-              <option value="Vestidos">Vestidos</option>
-              <option value="Enterizos">Enterizos</option>
-              <option value="Tops">Tops</option>
+              {categoryNames.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
             </select>
+            <a
+              href="/admin/categorias"
+              className="text-xs text-rose hover:underline mt-1 inline-block"
+            >
+              Crear o editar categorías
+            </a>
           </div>
           <div>
             <label className="text-xs text-ink/60">Precio base (COP)</label>

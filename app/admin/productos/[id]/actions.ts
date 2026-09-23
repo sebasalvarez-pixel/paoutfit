@@ -12,6 +12,19 @@ function revalidateStorefront(handle: string) {
 }
 
 export async function updateProduct(productId: string, formData: FormData) {
+  const category = String(formData.get("category") ?? "");
+  const current = await prisma.product.findUnique({
+    where: { id: productId },
+    select: { category: true },
+  });
+  // Solo se acepta una categoría que exista (o la que el producto ya tenía).
+  if (
+    category !== current?.category &&
+    !(await prisma.category.findUnique({ where: { name: category } }))
+  ) {
+    throw new Error("Esa categoría no existe. Créala primero en Categorías.");
+  }
+
   const product = await prisma.product.update({
     where: { id: productId },
     data: {
@@ -19,7 +32,7 @@ export async function updateProduct(productId: string, formData: FormData) {
       descriptionHtml: String(formData.get("descriptionHtml") ?? ""),
       titleEn: String(formData.get("titleEn") ?? "") || null,
       descriptionHtmlEn: String(formData.get("descriptionHtmlEn") ?? "") || null,
-      category: String(formData.get("category")),
+      category,
       basePriceCop: parseInt(String(formData.get("basePriceCop")), 10),
       isPublished: formData.get("isPublished") === "on",
     },

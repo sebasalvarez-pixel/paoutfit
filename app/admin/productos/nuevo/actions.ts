@@ -7,7 +7,12 @@ import { slugify, slugifyHandle } from "@/lib/slug";
 
 export async function createProduct(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
-  const category = String(formData.get("category") ?? "Vestidos");
+  const requestedCategory = String(formData.get("category") ?? "");
+  const categoryRow =
+    (await prisma.category.findUnique({ where: { name: requestedCategory } })) ??
+    (await prisma.category.findFirst({ orderBy: { position: "asc" } }));
+  if (!categoryRow) throw new Error("Primero crea una categoría.");
+  const category = categoryRow.name;
   const descriptionHtml = String(formData.get("descriptionHtml") ?? "");
   const basePriceCop = parseInt(String(formData.get("basePriceCop")), 10);
   const isPublished = formData.get("isPublished") === "on";

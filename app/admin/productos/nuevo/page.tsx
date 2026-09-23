@@ -1,7 +1,11 @@
 import { UnsavedChangesGuard } from "@/components/admin/UnsavedChangesGuard";
+import { getAllCategories } from "@/lib/categories";
 import { createProduct } from "./actions";
 
-export default function NewProductPage() {
+export const dynamic = "force-dynamic";
+
+export default async function NewProductPage() {
+  const categories = await getAllCategories();
   return (
     <div className="max-w-2xl space-y-6">
       <UnsavedChangesGuard />
@@ -46,13 +50,21 @@ export default function NewProductPage() {
             <label className="text-xs text-ink/60">Categoría</label>
             <select
               name="category"
-              defaultValue="Vestidos"
+              defaultValue={categories[0]?.name}
               className="w-full border border-ink/20 px-3 py-2 mt-1"
             >
-              <option value="Vestidos">Vestidos</option>
-              <option value="Enterizos">Enterizos</option>
-              <option value="Tops">Tops</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.name}>
+                  {c.name}
+                </option>
+              ))}
             </select>
+            <a
+              href="/admin/categorias"
+              className="text-xs text-rose hover:underline mt-1 inline-block"
+            >
+              Crear o editar categorías
+            </a>
           </div>
           <div>
             <label className="text-xs text-ink/60">Precio base (COP)</label>

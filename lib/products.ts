@@ -45,35 +45,40 @@ export async function getProductByHandle(handle: string) {
   });
 }
 
-export function getCategories() {
-  return ["Vestidos", "Enterizos", "Tops"] as const;
-}
-
 /**
- * Una foto representativa por categoría (para las tarjetas del home).
- * Devuelve null si esa categoría todavía no tiene ningún producto con
- * foto — la tarjeta se ve bien de las dos formas.
+ * IDs de los productos "más vendidos" según ventas reales (pedidos pagados
+ * o enviados). Son los que llevan la estrella en el catálogo. Mientras no
+ * haya ventas devuelve una lista vacía: no se marca nada de forma falsa.
  */
-export async function getCategoryImages() {
-  const categories = getCategories();
-  const result: Record<string, { storagePath: string; alt: string } | null> = {};
+export async function getBestSellerIds(limit = 3): Promise<string[]> {
+  const sales = await prisma.orderItem.groupBy({
+    by: ["variantId"],
+    where: { order: { status: { in: ["paid", "fulfilled"] } } },
+    _sum: { quantity: true },
+  });
+  if (sales.length === 0) return [];
 
-  for (const category of categories) {
-    const products = await getProductsByCategory(category);
-    let found: { storagePath: string; alt: string } | null = null;
-    for (const product of products) {
-      for (const variant of product.variants) {
-        if (variant.images[0]) {
-          found = { storagePath: variant.images[0].storagePath, alt: product.title };
-          break;
-        }
-      }
-      if (found) break;
-    }
-    result[category] = found;
+  const variants = await prisma.productVariant.findMany({
+    where: { id: { in: sales.map((s) => s.variantId) } },
+    select: { id: true, productId: true },
+  });
+  const productOfVariant = new Map(variants.map((v) => [v.id, v.productId]));
+
+  const unitsByProduct = new Map<string, number>();
+  for (const sale of sales) {
+    const productId = productOfVariant.get(sale.variantId);
+    if (!productId) continue;
+    unitsByProduct.set(
+      productId,
+      (unitsByProduct.get(productId) ?? 0) + (sale._sum.quantity ?? 0),
+    );
   }
 
-  return result;
+  return [...unitsByProduct.entries()]
+    .filter(([, units]) => units > 0)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([productId]) => productId);
 }
 
 /** Primera imagen disponible de un producto (para tarjetas de catálogo). */
