@@ -7,6 +7,8 @@ export type StoreCategory = {
   name: string;
   nameEn: string | null;
   slug: string;
+  /** Foto elegida a mano en el panel; si no hay, se usa una automática. */
+  imageUrl: string | null;
 };
 
 /** Todas las categorías (para el panel admin y los selectores de producto). */
@@ -24,7 +26,12 @@ export async function getStoreCategories(): Promise<StoreCategory[]> {
     where: { isVisible: true },
     orderBy: [{ position: "asc" }, { name: "asc" }],
   });
-  return categories.map(({ name, nameEn, slug }) => ({ name, nameEn, slug }));
+  return categories.map(({ name, nameEn, slug, imageUrl }) => ({
+    name,
+    nameEn,
+    slug,
+    imageUrl,
+  }));
 }
 
 export async function getCategoryBySlug(slug: string) {
@@ -32,14 +39,19 @@ export async function getCategoryBySlug(slug: string) {
 }
 
 /**
- * Una foto representativa por categoría (para las tarjetas del home).
- * Devuelve null si esa categoría todavía no tiene ningún producto con foto.
+ * Una foto representativa por categoría (para las tarjetas del home): la
+ * elegida a mano en el panel o, si no hay, la primera de sus productos.
+ * Devuelve null si no hay ninguna.
  */
 export async function getCategoryImages(categories: StoreCategory[]) {
   const result: Record<string, { storagePath: string; alt: string } | null> = {};
 
   await Promise.all(
     categories.map(async (category) => {
+      if (category.imageUrl) {
+        result[category.slug] = { storagePath: category.imageUrl, alt: category.name };
+        return;
+      }
       const products = await getProductsByCategory(category.name);
       let found: { storagePath: string; alt: string } | null = null;
       for (const product of products) {

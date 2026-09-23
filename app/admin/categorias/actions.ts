@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { slugifyHandle } from "@/lib/slug";
+import { supabaseAdmin, PRODUCT_IMAGES_BUCKET } from "@/lib/supabase";
 
 const PAGE = "/admin/categorias";
 
@@ -111,6 +112,66 @@ export async function moveCategory(id: string, direction: "up" | "down") {
     ),
   );
   revalidateAll();
+}
+
+// ---- Foto de la categoría (la que sale en la tarjeta del inicio) ----
+
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+/** Permiso de un solo uso para subir una foto nueva directo a Supabase Storage. */
+export async function createCategoryImageUploadUrl(
+  categoryId: string,
+  contentType: string,
+) {
+  if (!ALLOWED_IMAGE_TYPES.includes(contentType)) {
+    return { ok: false as const, error: "Solo se aceptan imágenes JPG, PNG o WEBP." };
+  }
+  const category = await prisma.category.findUnique({ where: { id: categoryId } });
+  if (!category) return { ok: false as const, error: "Categoría no encontrada." };
+
+  const ext = contentType === "image/png" ? "png" : contentType === "image/webp" ? "webp" : "jpg";
+  const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const storageKey = `categorias/${category.slug}-${unique}.${ext}`;
+
+  const { data, error } = await supabaseAdmin.storage
+    .from(PRODUCT_IMAGES_BUCKET)
+    .createSignedUploadUrl(storageKey);
+  if (error || !data) return { ok: false as const, error: "No se pudo preparar la subida." };
+
+  return { ok: true as const, storageKey, token: data.token };
+}
+
+/**
+ * Guarda la foto elegida. Acepta una foto ya subida a esta carpeta de
+ * categorías (storageKey), o una foto existente de algún producto (url).
+ * Con nada, vuelve al modo automático.
+ */
+export async function setCategoryImage(
+  categoryId: string,
+  choice: { storageKey: string } | { url: string } | null,
+) {
+  let imageUrl: string | null = null;
+
+  if (choice && "storageKey" in choice) {
+    if (!choice.storageKey.startsWith("categorias/")) {
+      return { ok: false as const, error: "Foto no válida." };
+    }
+    imageUrl = supabaseAdmin.storage
+      .from(PRODUCT_IMAGES_BUCKET)
+      .getPublicUrl(choice.storageKey).data.publicUrl;
+  } else if (choice) {
+    // Solo se permiten fotos que ya existen en el catálogo.
+    const exists = await prisma.productImage.findFirst({
+      where: { storagePath: choice.url },
+      select: { id: true },
+    });
+    if (!exists) return { ok: false as const, error: "Esa foto no existe en el catálogo." };
+    imageUrl = choice.url;
+  }
+
+  await prisma.category.update({ where: { id: categoryId }, data: { imageUrl } });
+  revalidateAll();
+  return { ok: true as const };
 }
 
 export async function deleteCategory(id: string) {

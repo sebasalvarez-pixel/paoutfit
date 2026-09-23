@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getAllCategories } from "@/lib/categories";
+import { CategoryImagePicker } from "@/components/admin/CategoryImagePicker";
 import {
   createCategory,
   deleteCategory,
@@ -16,10 +17,22 @@ export default async function AdminCategoriesPage({
   searchParams: Promise<{ ok?: string; error?: string }>;
 }) {
   const { ok, error } = await searchParams;
-  const [categories, counts] = await Promise.all([
+  const [categories, counts, images] = await Promise.all([
     getAllCategories(),
     prisma.product.groupBy({ by: ["category"], _count: { _all: true } }),
+    prisma.productImage.findMany({
+      select: {
+        storagePath: true,
+        product: { select: { title: true, category: true } },
+      },
+      orderBy: [{ productId: "asc" }, { position: "asc" }],
+    }),
   ]);
+  const allPhotos = images.map((i) => ({
+    url: i.storagePath,
+    label: i.product.title,
+    category: i.product.category,
+  }));
   const countOf = (name: string) =>
     counts.find((c) => c.category === name)?._count._all ?? 0;
 
@@ -108,6 +121,16 @@ export default async function AdminCategoriesPage({
                   Guardar
                 </button>
               </form>
+
+              <CategoryImagePicker
+                categoryId={category.id}
+                currentUrl={category.imageUrl}
+                photos={[
+                  // Primero las fotos de esta categoría, luego las demás.
+                  ...allPhotos.filter((p) => p.category === category.name),
+                  ...allPhotos.filter((p) => p.category !== category.name),
+                ].map(({ url, label }) => ({ url, label }))}
+              />
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
                 <span className="text-ink/60">

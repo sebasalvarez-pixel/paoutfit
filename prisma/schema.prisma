@@ -212,6 +212,7 @@ model Category {
   slug      String   @unique
   position  Int      @default(0)
   isVisible Boolean  @default(true) @map("is_visible")
+  imageUrl  String?  @map("image_url")
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("categories")
