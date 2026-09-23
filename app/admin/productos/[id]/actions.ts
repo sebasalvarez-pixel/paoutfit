@@ -142,7 +142,10 @@ export async function createImageUploadUrl(
   if (!product) return { ok: false as const, error: "Producto no encontrado." };
 
   const ext = contentType === "image/png" ? "png" : contentType === "image/webp" ? "webp" : "jpg";
-  const storageKey = `${product.handle}/${product.handle}-${Date.now()}.${ext}`;
+  // El sufijo aleatorio evita nombres repetidos cuando se suben varias fotos
+  // al mismo tiempo.
+  const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const storageKey = `${product.handle}/${product.handle}-${unique}.${ext}`;
 
   const { data, error } = await supabaseAdmin.storage
     .from(PRODUCT_IMAGES_BUCKET)
@@ -155,38 +158,55 @@ export async function createImageUploadUrl(
   return { ok: true as const, storageKey, token: data.token };
 }
 
-export async function confirmImageUpload(
+/**
+ * Registra varias fotos ya subidas a Storage, cada una en su color. Se
+ * guardan una por una y en el orden recibido (así no se pisan las
+ * posiciones) y se refresca la tienda una sola vez al final. Cada foto
+ * va al final de la fila de su color; si es la primera de ese color,
+ * queda de portada automáticamente (posición 0).
+ */
+export async function confirmImageUploads(
   productId: string,
-  variantId: string | null,
-  storageKey: string,
+  items: { variantId: string; storageKey: string }[],
 ) {
-  const product = await prisma.product.findUnique({ where: { id: productId } });
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    include: { variants: { select: { id: true } } },
+  });
   if (!product) return { ok: false as const, error: "Producto no encontrado." };
 
-  const { data: publicUrl } = supabaseAdmin.storage
-    .from(PRODUCT_IMAGES_BUCKET)
-    .getPublicUrl(storageKey);
+  const validVariantIds = new Set(product.variants.map((v) => v.id));
+  for (const item of items) {
+    // Solo se aceptan fotos subidas a la carpeta de este producto y a colores suyos.
+    if (!validVariantIds.has(item.variantId) || !item.storageKey.startsWith(`${product.handle}/`)) {
+      return { ok: false as const, error: "Datos de foto no válidos." };
+    }
+  }
 
-  // Va al final de la fila de fotos de ese color; si es la primera, queda
-  // de portada automáticamente (posición 0).
-  const lastImage = await prisma.productImage.findFirst({
-    where: { variantId },
-    orderBy: { position: "desc" },
-  });
+  for (const item of items) {
+    const { data: publicUrl } = supabaseAdmin.storage
+      .from(PRODUCT_IMAGES_BUCKET)
+      .getPublicUrl(item.storageKey);
 
-  await prisma.productImage.create({
-    data: {
-      productId,
-      variantId,
-      storagePath: publicUrl.publicUrl,
-      altText: product.title,
-      position: (lastImage?.position ?? -1) + 1,
-    },
-  });
+    const lastImage = await prisma.productImage.findFirst({
+      where: { variantId: item.variantId },
+      orderBy: { position: "desc" },
+    });
+
+    await prisma.productImage.create({
+      data: {
+        productId,
+        variantId: item.variantId,
+        storagePath: publicUrl.publicUrl,
+        altText: product.title,
+        position: (lastImage?.position ?? -1) + 1,
+      },
+    });
+  }
 
   revalidateStorefront(product.handle);
   revalidatePath(`/admin/productos/${productId}`);
-  return { ok: true as const };
+  return { ok: true as const, count: items.length };
 }
 
 // Pone esta foto de primera en su color (la "portada" que se ve en el
