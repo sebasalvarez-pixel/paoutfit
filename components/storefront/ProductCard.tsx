@@ -59,13 +59,21 @@ export function ProductCard({
     >
       <div className="relative aspect-[3/4] bg-blush overflow-hidden">
         {activeImage ? (
-          <Image
-            src={activeImage.storagePath}
-            alt={activeImage.altText ?? title}
-            fill
-            sizes="(min-width: 1024px) 25vw, 50vw"
-            className="object-cover transition-all duration-500 ease-out group-hover:scale-110"
-          />
+          // Todas las fotos van apiladas y solo cambia cuál es visible: así
+          // pasan con un fundido suave en vez de un salto brusco.
+          images.map((img, i) => (
+            <Image
+              key={img.id}
+              src={img.storagePath}
+              alt={i === 0 ? (img.altText ?? title) : ""}
+              fill
+              sizes="(min-width: 1024px) 25vw, 50vw"
+              loading={i === 0 ? undefined : "eager"}
+              className={`object-cover transition-all duration-700 ease-in-out group-hover:scale-105 ${
+                i === activeIndex ? "opacity-100" : "opacity-0"
+              }`}
+            />
+          ))
         ) : (
           <div className="h-full w-full flex items-center justify-center text-ink/30 text-sm uppercase tracking-wide">
             {t("home_proximamente")}

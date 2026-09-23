@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { formatCop } from "@/lib/format";
 import { useCartStore } from "@/lib/cart-store";
 import { useLocale } from "@/components/LocaleProvider";
@@ -48,7 +48,37 @@ export function ProductDetail({ product }: { product: ProductWithVariants }) {
   );
 
   const images = filterByColor ? (selectedVariant?.images ?? []) : allImages;
-  const activeImage = images[activeImageIndex] ?? images[0];
+
+  // Arrastre horizontal (dedo o mouse) para pasar de foto.
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const dragStartX = useRef<number | null>(null);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [dragging, setDragging] = useState(false);
+
+  function handlePointerDown(e: React.PointerEvent) {
+    if (images.length < 2) return;
+    // No interferir con los botones de flecha.
+    if ((e.target as HTMLElement).closest("button")) return;
+    dragStartX.current = e.clientX;
+    setDragging(true);
+    viewportRef.current?.setPointerCapture(e.pointerId);
+  }
+
+  function handlePointerMove(e: React.PointerEvent) {
+    if (dragStartX.current === null) return;
+    setDragOffset(e.clientX - dragStartX.current);
+  }
+
+  function handlePointerEnd(e: React.PointerEvent) {
+    if (dragStartX.current === null) return;
+    const width = viewportRef.current?.clientWidth ?? 300;
+    const delta = e.clientX - dragStartX.current;
+    dragStartX.current = null;
+    setDragging(false);
+    setDragOffset(0);
+    // Con arrastrar más de ~15% del ancho se cambia de foto.
+    if (Math.abs(delta) > width * 0.15) goToImage(delta < 0 ? 1 : -1);
+  }
 
   function handleSelectVariant(id: string) {
     setSelectedVariantId(id);
@@ -81,17 +111,47 @@ export function ProductDetail({ product }: { product: ProductWithVariants }) {
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 grid lg:grid-cols-2 gap-12">
       {/* Galería */}
       <div>
-        <div className="relative aspect-[3/4] bg-blush overflow-hidden group">
-          {activeImage ? (
-            <Image
-              key={activeImage.id}
-              src={activeImage.storagePath}
-              alt={activeImage.altText ?? title}
-              fill
-              sizes="(min-width: 1024px) 50vw, 100vw"
-              className="object-cover"
-              priority
-            />
+        <div
+          ref={viewportRef}
+          className="relative aspect-[3/4] bg-blush overflow-hidden group select-none touch-pan-y"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerEnd}
+          onPointerCancel={handlePointerEnd}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowLeft") goToImage(-1);
+            if (e.key === "ArrowRight") goToImage(1);
+          }}
+          tabIndex={0}
+          aria-roledescription="carousel"
+        >
+          {images.length > 0 ? (
+            // Las fotos van en una fila horizontal que se desliza: se puede
+            // arrastrar con el dedo o el mouse, y las flechas y miniaturas
+            // hacen el mismo deslizamiento suave.
+            <div
+              className={`flex h-full ${
+                dragging ? "" : "transition-transform duration-500 ease-out"
+              }`}
+              style={{
+                transform: `translateX(calc(${-activeImageIndex * 100}% + ${dragOffset}px))`,
+              }}
+            >
+              {images.map((img, i) => (
+                <div key={img.id} className="relative h-full w-full shrink-0">
+                  <Image
+                    src={img.storagePath}
+                    alt={img.altText ?? title}
+                    fill
+                    draggable={false}
+                    sizes="(min-width: 1024px) 50vw, 100vw"
+                    className="object-cover pointer-events-none"
+                    priority={i === 0}
+                    loading={i === 0 ? undefined : "eager"}
+                  />
+                </div>
+              ))}
+            </div>
           ) : (
             <div className="h-full w-full flex items-center justify-center text-ink/30 uppercase text-sm">
               {t("product_foto_proximamente")}
