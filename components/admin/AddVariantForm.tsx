@@ -12,6 +12,7 @@ export function AddVariantForm({
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const [added, setAdded] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -25,6 +26,8 @@ export function AddVariantForm({
         return;
       }
       formRef.current?.reset();
+      setAdded(true);
+      setTimeout(() => setAdded(false), 3500);
     });
   }
 
@@ -70,6 +73,11 @@ export function AddVariantForm({
         {isPending ? "Agregando..." : "Agregar color"}
       </button>
       {error && <p className="text-xs text-red-600 w-full">{error}</p>}
+      {added && (
+        <p role="status" className="text-xs text-emerald-700 w-full">
+          ✓ Color agregado. Ahora sube sus fotos abajo.
+        </p>
+      )}
     </form>
   );
 }
