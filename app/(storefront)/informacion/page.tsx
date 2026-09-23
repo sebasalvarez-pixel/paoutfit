@@ -55,8 +55,9 @@ export default async function InfoPage() {
           <h2 className="font-heading text-2xl text-ink mb-4">🚚 Shipping</h2>
           <div className="space-y-3 text-sm text-ink/80">
             <p>
-              All our shipments are made through <strong>ENVIA</strong>{" "}
-              nationwide within Colombia.
+              Within Colombia we ship nationwide through our carrier partners.
+              For international destinations we ship with <strong>DHL</strong>;
+              the cost depends on the destination and is quoted per order.
             </p>
             <p>
               Once your payment is confirmed, we prepare your order and ship
@@ -178,7 +179,9 @@ export default async function InfoPage() {
             <div>
               <p className="font-medium text-ink">Do you ship internationally?</p>
               <p className="text-ink/70 mt-1">
-                Right now we only ship within Colombia.
+                Yes, through DHL. Choose &quot;International&quot; at checkout: we quote
+                the shipping for your destination and email you the total with
+                a payment link. You pay nothing until you confirm the quote.
               </p>
             </div>
             <div>
@@ -233,8 +236,10 @@ export default async function InfoPage() {
         <h2 className="font-heading text-2xl text-ink mb-4">🚚 Envíos</h2>
         <div className="space-y-3 text-sm text-ink/80">
           <p>
-            Todos nuestros envíos se realizan a través de{" "}
-            <strong>ENVIA</strong> a nivel nacional en Colombia.
+            Dentro de Colombia enviamos a todo el país con nuestras
+            transportadoras aliadas. Para destinos internacionales enviamos con{" "}
+            <strong>DHL</strong>; el costo depende del destino y se cotiza por
+            pedido.
           </p>
           <p>
             Una vez tu pago sea confirmado, alistamos tu pedido y lo
@@ -366,7 +371,9 @@ export default async function InfoPage() {
               ¿Hacen envíos internacionales?
             </p>
             <p className="text-ink/70 mt-1">
-              Por ahora solo realizamos envíos dentro de Colombia.
+              Sí, a través de DHL. Elige &quot;Internacional&quot; al pagar: cotizamos el
+              envío a tu destino y te escribimos por correo con el total y un
+              link de pago. No pagas nada hasta que confirmes la cotización.
             </p>
           </div>
           <div>

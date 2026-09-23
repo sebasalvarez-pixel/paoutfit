@@ -10,6 +10,11 @@ import {
   WOMPI_CHECKOUT_URL,
 } from "@/lib/wompi";
 import { createAddiApplication, getAddiConfig, isAddiConfigured } from "@/lib/addi";
+import { sendEmail } from "@/lib/resend";
+import {
+  InternationalOrderReceived,
+  InternationalQuoteRequest,
+} from "@/emails/InternationalEmails";
 
 const FLAT_SHIPPING_COP = 12000;
 const FREE_SHIPPING_THRESHOLD_COP = 200000;
@@ -20,10 +25,14 @@ const checkoutSchema = z
     customerEmail: z.string().email("Ingresa un correo válido."),
     customerPhone: z.string().min(7, "Ingresa un teléfono válido."),
     customerIdNumber: z.string().optional(),
+    shippingMode: z.enum(["national", "international"]).default("national"),
+    locale: z.enum(["es", "en"]).default("es"),
     addressLine1: z.string().min(4, "Ingresa tu dirección."),
     addressLine2: z.string().optional(),
     city: z.string().min(2, "Ingresa tu ciudad."),
-    department: z.string().min(2, "Ingresa tu departamento."),
+    department: z.string().optional(),
+    country: z.string().optional(),
+    postalCode: z.string().optional(),
     discountCode: z.string().optional(),
     paymentMethod: z.enum(["wompi", "addi"]).default("wompi"),
     acceptedDataPolicy: z.boolean().refine((v) => v === true, {
@@ -39,12 +48,26 @@ const checkoutSchema = z
       .min(1, "Tu carrito está vacío."),
   })
   .refine(
+    (data) =>
+      data.shippingMode !== "national" || (data.department?.trim().length ?? 0) >= 2,
+    { message: "Ingresa tu departamento.", path: ["department"] },
+  )
+  .refine(
+    (data) =>
+      data.shippingMode !== "international" || (data.country?.trim().length ?? 0) >= 2,
+    { message: "Ingresa tu país.", path: ["country"] },
+  )
+  .refine(
     (data) => data.paymentMethod !== "addi" || (data.customerIdNumber?.length ?? 0) >= 6,
     {
       message: "Para pagar con Addi necesitamos tu número de cédula.",
       path: ["customerIdNumber"],
     },
-  );
+  )
+  .refine((data) => !(data.shippingMode === "international" && data.paymentMethod === "addi"), {
+    message: "Addi solo está disponible para envíos dentro de Colombia.",
+    path: ["paymentMethod"],
+  });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 
@@ -57,6 +80,9 @@ export type CheckoutResult =
       wompiCheckoutUrl: string;
       addiRedirectUrl: string | null;
       devPaymentAvailable: boolean;
+      // true para envíos internacionales: el pedido queda registrado sin
+      // cobrar, hasta que se cotice el envío con DHL.
+      quoteRequested: boolean;
       orderId: string;
     }
   | { ok: false; error: string };
@@ -143,8 +169,14 @@ export async function createOrder(
         : code.value;
   }
 
-  const shippingCop =
-    subtotalCop - discountCop >= FREE_SHIPPING_THRESHOLD_COP
+  const isInternational = data.shippingMode === "international";
+
+  // Envío internacional: el costo real lo da DHL según el destino, así que
+  // el pedido se registra con envío en 0 y "por cotizar"; la dueña lo
+  // cotiza en el panel y ahí se le manda el link de pago al cliente.
+  const shippingCop = isInternational
+    ? 0
+    : subtotalCop - discountCop >= FREE_SHIPPING_THRESHOLD_COP
       ? 0
       : FLAT_SHIPPING_COP;
   const totalCop = subtotalCop - discountCop + shippingCop;
@@ -160,11 +192,17 @@ export async function createOrder(
       customerEmail: data.customerEmail,
       customerPhone: data.customerPhone,
       customerIdNumber: data.customerIdNumber || null,
+      customerLocale: data.locale,
+      isInternational,
+      shippingQuotePending: isInternational,
+      carrier: isInternational ? "DHL" : undefined,
       shippingAddress: {
         line1: data.addressLine1,
         line2: data.addressLine2 ?? "",
         city: data.city,
-        department: data.department,
+        department: data.department ?? "",
+        country: isInternational ? data.country!.trim() : "Colombia",
+        postalCode: data.postalCode ?? "",
       },
       subtotalCop,
       discountCop,
@@ -180,6 +218,69 @@ export async function createOrder(
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const redirectUrl = `${appUrl}/pedido-confirmado/${order.orderNumber}`;
+
+  if (isInternational) {
+    const itemsForEmail = orderItemsData.map((item) => ({
+      title: item.productTitle,
+      color: item.colorName,
+      quantity: item.quantity,
+      unitPriceCop: item.unitPriceCop,
+    }));
+    const addressText = [
+      data.addressLine1,
+      data.addressLine2,
+      data.city,
+      data.department,
+      data.postalCode,
+      data.country,
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    await sendEmail({
+      to: data.customerEmail,
+      subject:
+        data.locale === "en"
+          ? `We received your order ${order.orderNumber} — PAOUTFIT`
+          : `Recibimos tu pedido ${order.orderNumber} — PAOUTFIT`,
+      react: InternationalOrderReceived({
+        orderNumber: order.orderNumber,
+        customerName: data.customerName,
+        items: itemsForEmail,
+        subtotalCop: subtotalCop - discountCop,
+        locale: data.locale,
+      }),
+    });
+
+    if (process.env.OWNER_NOTIFICATION_EMAIL) {
+      await sendEmail({
+        to: process.env.OWNER_NOTIFICATION_EMAIL,
+        subject: `🌎 Pedido internacional por cotizar: ${order.orderNumber}`,
+        react: InternationalQuoteRequest({
+          orderNumber: order.orderNumber,
+          customerName: data.customerName,
+          customerEmail: data.customerEmail,
+          customerPhone: data.customerPhone,
+          addressText,
+          items: itemsForEmail,
+          subtotalCop: subtotalCop - discountCop,
+          adminUrl: `${appUrl}/admin/pedidos/${order.id}`,
+        }),
+      });
+    }
+
+    return {
+      ok: true,
+      orderNumber: order.orderNumber,
+      totalCop,
+      orderId: order.id,
+      wompiCheckoutUrl: WOMPI_CHECKOUT_URL,
+      wompi: null,
+      addiRedirectUrl: null,
+      devPaymentAvailable: false,
+      quoteRequested: true,
+    };
+  }
 
   if (data.paymentMethod === "addi") {
     const addiResult = await createAddiApplication({
@@ -216,6 +317,7 @@ export async function createOrder(
       wompi: null,
       addiRedirectUrl: addiResult.redirectUrl,
       devPaymentAvailable: false,
+      quoteRequested: false,
     };
   }
 
@@ -237,6 +339,7 @@ export async function createOrder(
       : null,
     addiRedirectUrl: null,
     devPaymentAvailable: !wompiReady && process.env.NODE_ENV !== "production",
+    quoteRequested: false,
   };
 }
 

@@ -80,7 +80,11 @@ export async function lookupOrder(
   return {
     ok: true,
     orderNumber: order.orderNumber,
-    statusLabel: STATUS_LABEL[locale][order.status] ?? order.status,
+    statusLabel: order.shippingQuotePending
+      ? locale === "en"
+        ? "Quoting your international shipping"
+        : "Cotizando tu envío internacional"
+      : (STATUS_LABEL[locale][order.status] ?? order.status),
     totalCop: order.totalCop,
     createdAt: order.createdAt.toISOString(),
     items: order.items.map((i) => ({

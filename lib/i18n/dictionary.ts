@@ -83,6 +83,31 @@ export const dictionary = {
     checkout_pagar_addi: "Addi — paga después",
     checkout_cedula: "Número de cédula",
     checkout_redirigiendo_addi: "Redirigiendo a Addi...",
+    checkout_tipo_envio: "Tipo de envío",
+    checkout_envio_nacional: "Nacional (Colombia)",
+    checkout_envio_internacional: "Internacional",
+    checkout_pais: "País",
+    checkout_estado_provincia: "Estado / provincia (opcional)",
+    checkout_codigo_postal: "Código postal",
+    checkout_telefono_intl: "Teléfono con código de país (ej. +1 555 123 4567)",
+    checkout_intl_aviso:
+      "El envío internacional lo cotizamos con DHL según tu destino. Te enviaremos por correo el valor del envío y un link de pago — no pagas nada hasta que lo confirmes.",
+    checkout_solicitar_cotizacion: "Solicitar cotización de envío",
+    checkout_envio_por_cotizar: "Envío internacional: por cotizar",
+
+    // Pedido con envío internacional por cotizar
+    order_cotizacion_titulo: "¡Recibimos tu pedido!",
+    order_cotizacion_texto:
+      "Vamos a cotizar el envío internacional con DHL y te escribiremos a tu correo con el costo total y el link de pago. Guarda tu número de pedido.",
+
+    // Página de pago (pedidos internacionales)
+    pay_title: "Pagar tu pedido",
+    pay_envio_intl: "Envío internacional (DHL)",
+    pay_boton: "Pagar ahora",
+    pay_no_cotizado:
+      "Este pedido todavía no tiene el envío cotizado. Te avisaremos por correo cuando esté listo para pagar.",
+    pay_no_disponible: "Este pedido ya fue pagado o no está disponible para pago.",
+    pay_sin_pasarela: "La pasarela de pago todavía no está configurada. Contacta al equipo.",
 
     // Rastrear pedido
     track_title: "Rastrea tu pedido",
@@ -199,6 +224,31 @@ export const dictionary = {
     checkout_pagar_addi: "Addi — pay later",
     checkout_cedula: "ID number (cédula)",
     checkout_redirigiendo_addi: "Redirecting to Addi...",
+    checkout_tipo_envio: "Shipping type",
+    checkout_envio_nacional: "Domestic (Colombia)",
+    checkout_envio_internacional: "International",
+    checkout_pais: "Country",
+    checkout_estado_provincia: "State / province (optional)",
+    checkout_codigo_postal: "Postal code",
+    checkout_telefono_intl: "Phone with country code (e.g. +1 555 123 4567)",
+    checkout_intl_aviso:
+      "We quote international shipping with DHL based on your destination. We'll email you the shipping cost and a payment link — you pay nothing until you confirm it.",
+    checkout_solicitar_cotizacion: "Request shipping quote",
+    checkout_envio_por_cotizar: "International shipping: to be quoted",
+
+    // Order with international shipping pending a quote
+    order_cotizacion_titulo: "We received your order!",
+    order_cotizacion_texto:
+      "We'll quote international shipping with DHL and email you the total cost and a payment link. Keep your order number.",
+
+    // Payment page (international orders)
+    pay_title: "Pay for your order",
+    pay_envio_intl: "International shipping (DHL)",
+    pay_boton: "Pay now",
+    pay_no_cotizado:
+      "This order doesn't have a shipping quote yet. We'll email you when it's ready to pay.",
+    pay_no_disponible: "This order was already paid or isn't available for payment.",
+    pay_sin_pasarela: "The payment gateway isn't configured yet. Please contact us.",
 
     // Rastrear pedido
     track_title: "Track your order",

@@ -8,6 +8,27 @@ import { useLocale } from "@/components/LocaleProvider";
 import { translateColorName } from "@/lib/i18n/dictionary";
 import { createOrder, devSimulatePayment, getAddiAvailability } from "./actions";
 
+// Solo sugerencias para el campo de país (es texto libre): los países a los
+// que más probablemente se envíe. La cotización con DHL se hace a mano.
+const COUNTRY_SUGGESTIONS = [
+  "Estados Unidos / United States",
+  "Canadá / Canada",
+  "México",
+  "España / Spain",
+  "Chile",
+  "Perú",
+  "Ecuador",
+  "Argentina",
+  "Panamá",
+  "Costa Rica",
+  "República Dominicana",
+  "Reino Unido / United Kingdom",
+  "Francia / France",
+  "Alemania / Germany",
+  "Italia / Italy",
+  "Australia",
+];
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, clear } = useCartStore();
@@ -28,6 +49,13 @@ export default function CheckoutPage() {
   const [addiAvailable, setAddiAvailable] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"wompi" | "addi">("wompi");
   const [redirectingToAddi, setRedirectingToAddi] = useState(false);
+  const [shippingMode, setShippingMode] = useState<"national" | "international">(
+    "national",
+  );
+  const isInternational = shippingMode === "international";
+  // Addi solo existe para Colombia: en envíos internacionales siempre se
+  // usa la pasarela normal (el link de pago se manda después de cotizar).
+  const effectiveMethod = isInternational ? "wompi" : paymentMethod;
 
   useEffect(() => {
     if (total <= 0) return;
@@ -62,8 +90,12 @@ export default function CheckoutPage() {
         addressLine2: String(form.get("addressLine2") ?? ""),
         city: String(form.get("city") ?? ""),
         department: String(form.get("department") ?? ""),
+        country: String(form.get("country") ?? "") || undefined,
+        postalCode: String(form.get("postalCode") ?? "") || undefined,
+        shippingMode,
+        locale,
         discountCode: String(form.get("discountCode") ?? "") || undefined,
-        paymentMethod,
+        paymentMethod: effectiveMethod,
         acceptedDataPolicy: form.get("acceptedDataPolicy") === "on",
         items: items.map((i) => ({
           variantId: i.variantId,
@@ -73,6 +105,12 @@ export default function CheckoutPage() {
 
       if (!result.ok) {
         setError(result.error);
+        return;
+      }
+
+      if (result.quoteRequested) {
+        clear();
+        router.push(`/pedido-confirmado/${result.orderNumber}`);
         return;
       }
 
@@ -120,6 +158,35 @@ export default function CheckoutPage() {
 
         <section className="space-y-3">
           <h2 className="text-xs uppercase tracking-wide text-ink/60">
+            {t("checkout_tipo_envio")}
+          </h2>
+          <div className="grid grid-cols-2 gap-3">
+            {(["national", "international"] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setShippingMode(mode)}
+                className={`px-4 py-3 text-sm border transition-colors ${
+                  shippingMode === mode
+                    ? "border-rose text-rose"
+                    : "border-ink/20 text-ink/70 hover:border-ink/50"
+                }`}
+              >
+                {mode === "national"
+                  ? t("checkout_envio_nacional")
+                  : t("checkout_envio_internacional")}
+              </button>
+            ))}
+          </div>
+          {isInternational && (
+            <p className="text-xs text-ink/60 bg-blush px-3 py-2">
+              {t("checkout_intl_aviso")}
+            </p>
+          )}
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-xs uppercase tracking-wide text-ink/60">
             {t("checkout_contacto")}
           </h2>
           <input
@@ -138,10 +205,12 @@ export default function CheckoutPage() {
           <input
             name="customerPhone"
             required
-            placeholder={t("checkout_telefono")}
+            placeholder={
+              isInternational ? t("checkout_telefono_intl") : t("checkout_telefono")
+            }
             className="w-full border border-ink/20 px-3 py-2 bg-white"
           />
-          {paymentMethod === "addi" && (
+          {effectiveMethod === "addi" && (
             <input
               name="customerIdNumber"
               required
@@ -155,6 +224,22 @@ export default function CheckoutPage() {
           <h2 className="text-xs uppercase tracking-wide text-ink/60">
             {t("checkout_direccion_envio")}
           </h2>
+          {isInternational && (
+            <>
+              <input
+                name="country"
+                list="paises"
+                required
+                placeholder={t("checkout_pais")}
+                className="w-full border border-ink/20 px-3 py-2 bg-white"
+              />
+              <datalist id="paises">
+                {COUNTRY_SUGGESTIONS.map((country) => (
+                  <option key={country} value={country} />
+                ))}
+              </datalist>
+            </>
+          )}
           <input
             name="addressLine1"
             required
@@ -175,11 +260,22 @@ export default function CheckoutPage() {
             />
             <input
               name="department"
-              required
-              placeholder={t("checkout_departamento")}
+              required={!isInternational}
+              placeholder={
+                isInternational
+                  ? t("checkout_estado_provincia")
+                  : t("checkout_departamento")
+              }
               className="w-full border border-ink/20 px-3 py-2 bg-white"
             />
           </div>
+          {isInternational && (
+            <input
+              name="postalCode"
+              placeholder={t("checkout_codigo_postal")}
+              className="w-full border border-ink/20 px-3 py-2 bg-white"
+            />
+          )}
         </section>
 
         <section className="space-y-3">
@@ -193,7 +289,7 @@ export default function CheckoutPage() {
           />
         </section>
 
-        {addiAvailable && (
+        {addiAvailable && !isInternational && (
           <section className="space-y-3">
             <h2 className="text-xs uppercase tracking-wide text-ink/60">
               {t("checkout_metodo_pago")}
@@ -271,7 +367,9 @@ export default function CheckoutPage() {
               ? t("checkout_redirigiendo_addi")
               : isPending
                 ? t("checkout_procesando")
-                : t("checkout_pagar_ahora")}
+                : isInternational
+                  ? t("checkout_solicitar_cotizacion")
+                  : t("checkout_pagar_ahora")}
           </button>
         )}
       </form>
@@ -293,7 +391,11 @@ export default function CheckoutPage() {
           <span>{t("cart_subtotal")}</span>
           <span>{formatCop(total)}</span>
         </div>
-        <p className="text-xs text-ink/60 mt-2">{t("checkout_envio_impuestos")}</p>
+        <p className="text-xs text-ink/60 mt-2">
+          {isInternational
+            ? t("checkout_envio_por_cotizar")
+            : t("checkout_envio_impuestos")}
+        </p>
       </div>
 
       {/* Formulario oculto que envía a Wompi Web Checkout */}

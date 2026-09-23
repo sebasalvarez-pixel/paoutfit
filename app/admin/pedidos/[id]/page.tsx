@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { formatCop } from "@/lib/format";
 import { OrderStatusBadge, STATUS_LABEL } from "@/components/admin/OrderStatusBadge";
 import { UnsavedChangesGuard } from "@/components/admin/UnsavedChangesGuard";
-import { changeOrderStatus, markAsShipped } from "./actions";
+import { changeOrderStatus, markAsShipped, setInternationalShipping } from "./actions";
 
 const STATUSES = [
   "pending",
@@ -35,10 +35,14 @@ export default async function AdminOrderDetailPage({
     line2?: string;
     city: string;
     department: string;
+    country?: string;
+    postalCode?: string;
   };
 
   const boundChangeStatus = changeOrderStatus.bind(null, order.id);
   const boundMarkAsShipped = markAsShipped.bind(null, order.id);
+  const boundSetInternationalShipping = setInternationalShipping.bind(null, order.id);
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
   return (
     <div className="max-w-3xl space-y-8">
@@ -74,13 +78,76 @@ export default async function AdminOrderDetailPage({
           <h2 className="text-xs uppercase tracking-wide text-ink/50 mb-3">
             Envío
           </h2>
+          {order.isInternational && (
+            <p className="text-xs uppercase tracking-wide text-rose mb-2">
+              🌎 Internacional · idioma: {order.customerLocale === "en" ? "inglés" : "español"}
+            </p>
+          )}
           <p className="text-sm">{address.line1}</p>
           {address.line2 && <p className="text-sm">{address.line2}</p>}
           <p className="text-sm text-ink/70">
-            {address.city}, {address.department}
+            {[address.city, address.department, address.postalCode]
+              .filter(Boolean)
+              .join(", ")}
           </p>
+          {order.isInternational && address.country && (
+            <p className="text-sm font-medium">{address.country}</p>
+          )}
         </div>
       </div>
+
+      {order.isInternational && (
+        <div className="bg-white border border-ink/10 rounded p-5">
+          <h2 className="text-xs uppercase tracking-wide text-ink/50 mb-3">
+            Cotización de envío internacional (DHL)
+          </h2>
+          {order.shippingQuotePending ? (
+            <p className="text-sm text-amber-700 mb-3">
+              Este pedido está esperando tu cotización. Cotiza el envío con DHL
+              a la dirección de arriba y escribe el valor en pesos (COP).
+            </p>
+          ) : (
+            <p className="text-sm text-emerald-700 mb-3">
+              Envío cotizado: {formatCop(order.shippingCop)}.
+              {order.status === "pending"
+                ? " Si te equivocaste, puedes corregirlo y reenviar el link."
+                : ""}
+            </p>
+          )}
+          {order.status === "pending" ? (
+            <form
+              action={boundSetInternationalShipping}
+              className="flex flex-wrap items-end gap-3"
+            >
+              <div>
+                <label className="text-xs text-ink/60">Costo del envío (COP)</label>
+                <input
+                  name="shippingCop"
+                  type="number"
+                  min={1}
+                  required
+                  defaultValue={order.shippingQuotePending ? undefined : order.shippingCop}
+                  placeholder="Ej. 180000"
+                  className="border border-ink/20 px-3 py-2 text-sm mt-1"
+                />
+              </div>
+              <button
+                type="submit"
+                className="bg-rose text-white px-6 py-2 text-sm uppercase tracking-wide hover:bg-plum transition-colors"
+              >
+                {order.shippingQuotePending
+                  ? "Guardar y enviar link de pago"
+                  : "Guardar y reenviar link de pago"}
+              </button>
+            </form>
+          ) : null}
+          {!order.shippingQuotePending && order.status === "pending" && (
+            <p className="text-xs text-ink/50 mt-3 break-all">
+              Link de pago del cliente: {appUrl}/pagar/{order.orderNumber}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="bg-white border border-ink/10 rounded p-5">
         <h2 className="text-xs uppercase tracking-wide text-ink/50 mb-3">
@@ -109,7 +176,13 @@ export default async function AdminOrderDetailPage({
           )}
           <div className="flex justify-between text-ink/60">
             <span>Envío</span>
-            <span>{order.shippingCop === 0 ? "Gratis" : formatCop(order.shippingCop)}</span>
+            <span>
+              {order.shippingQuotePending
+                ? "Por cotizar"
+                : order.shippingCop === 0
+                  ? "Gratis"
+                  : formatCop(order.shippingCop)}
+            </span>
           </div>
           <div className="flex justify-between font-semibold text-ink pt-1">
             <span>Total</span>

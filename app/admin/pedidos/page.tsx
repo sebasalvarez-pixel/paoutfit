@@ -132,6 +132,11 @@ export default async function AdminOrdersPage({
                   <span className="block sm:hidden text-xs text-ink/40 mt-0.5">
                     {order.createdAt.toLocaleDateString("es-CO")}
                   </span>
+                  {order.isInternational && (
+                    <span className="block text-[11px] text-rose mt-0.5">
+                      🌎 Internacional{order.shippingQuotePending ? " · por cotizar" : ""}
+                    </span>
+                  )}
                 </td>
                 <td className="px-4 py-3">
                   {order.customerName}

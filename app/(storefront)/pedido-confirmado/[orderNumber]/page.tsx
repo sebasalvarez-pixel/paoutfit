@@ -40,14 +40,23 @@ export default async function OrderConfirmedPage({
   return (
     <div className="mx-auto max-w-xl px-4 py-20 text-center">
       <h1 className="font-heading text-3xl text-ink mb-2">
-        {order.status === "paid"
-          ? t(locale, "order_gracias")
-          : t(locale, "order_recibido")}
+        {order.shippingQuotePending
+          ? t(locale, "order_cotizacion_titulo")
+          : order.status === "paid"
+            ? t(locale, "order_gracias")
+            : t(locale, "order_recibido")}
       </h1>
       <p className="text-ink/60 mb-6">
-        {t(locale, "track_pedido")} <strong>{order.orderNumber}</strong> —{" "}
-        {STATUS_LABEL[locale][order.status] ?? order.status}
+        {t(locale, "track_pedido")} <strong>{order.orderNumber}</strong>
+        {!order.shippingQuotePending && (
+          <> — {STATUS_LABEL[locale][order.status] ?? order.status}</>
+        )}
       </p>
+      {order.shippingQuotePending && (
+        <p className="text-sm text-ink/70 bg-blush px-4 py-3 mb-6">
+          {t(locale, "order_cotizacion_texto")}
+        </p>
+      )}
 
       <ul className="text-left divide-y divide-ink/10 mb-6">
         {order.items.map((item) => (
@@ -61,6 +70,12 @@ export default async function OrderConfirmedPage({
         ))}
       </ul>
 
+      {order.shippingQuotePending && (
+        <div className="flex justify-between text-sm text-ink/60 mb-2">
+          <span>{locale === "en" ? "International shipping" : "Envío internacional"}</span>
+          <span>{locale === "en" ? "To be quoted" : "Por cotizar"}</span>
+        </div>
+      )}
       <div className="flex justify-between font-semibold mb-8">
         <span>{t(locale, "track_total")}</span>
         <span className="text-rose">{formatCop(order.totalCop)}</span>

@@ -2,6 +2,10 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { getCategories } from "@/lib/products";
 
+// Se genera al momento de pedirlo, no durante el build: así un despliegue
+// no falla si la base de datos está pausada o caída en ese momento.
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
