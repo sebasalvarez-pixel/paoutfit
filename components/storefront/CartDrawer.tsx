@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCartStore, cartTotal } from "@/lib/cart-store";
 import { formatCop } from "@/lib/format";
 import { useLocale } from "@/components/LocaleProvider";
+import { OrderTotals } from "@/components/storefront/OrderTotals";
 import { translateColorName } from "@/lib/i18n/dictionary";
 
 export function CartDrawer() {
@@ -104,10 +105,7 @@ export function CartDrawer() {
 
         {items.length > 0 && (
           <div className="border-t border-rose/15 px-6 py-5 space-y-4">
-            <div className="flex justify-between text-sm">
-              <span>{t("cart_subtotal")}</span>
-              <span className="text-rose">{formatCop(total)}</span>
-            </div>
+            <OrderTotals subtotalCop={total} />
             <Link
               href="/checkout"
               onClick={close}

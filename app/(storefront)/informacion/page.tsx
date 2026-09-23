@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale } from "@/lib/i18n/get-locale";
+import { formatCop } from "@/lib/format";
+import {
+  FREE_SHIPPING_THRESHOLD_COP,
+  INTERNATIONAL_SHIPPING_USD_MAX,
+  INTERNATIONAL_SHIPPING_USD_MIN,
+  NATIONAL_SHIPPING_COP,
+} from "@/lib/shipping";
 
 export const metadata: Metadata = {
   title: "Información — PAOUTFIT",
@@ -55,9 +62,17 @@ export default async function InfoPage() {
           <h2 className="font-heading text-2xl text-ink mb-4">🚚 Shipping</h2>
           <div className="space-y-3 text-sm text-ink/80">
             <p>
-              Within Colombia we ship nationwide through our carrier partners.
-              For international destinations we ship with <strong>DHL</strong>;
-              the cost depends on the destination and is quoted per order.
+              Within Colombia we ship nationwide through our carrier partners
+              for a flat rate of{" "}
+              <strong>{formatCop(NATIONAL_SHIPPING_COP)}</strong>, and{" "}
+              <strong>
+                shipping is free on orders of {formatCop(FREE_SHIPPING_THRESHOLD_COP)} or more
+              </strong>
+              . For international destinations we ship with{" "}
+              <strong>DHL</strong>; the cost depends on the destination and is
+              quoted per order (approximately USD {INTERNATIONAL_SHIPPING_USD_MIN}
+              {" – "}USD {INTERNATIONAL_SHIPPING_USD_MAX}). We confirm the exact
+              amount before you pay.
             </p>
             <p>
               Once your payment is confirmed, we prepare your order and ship
@@ -237,9 +252,16 @@ export default async function InfoPage() {
         <div className="space-y-3 text-sm text-ink/80">
           <p>
             Dentro de Colombia enviamos a todo el país con nuestras
-            transportadoras aliadas. Para destinos internacionales enviamos con{" "}
+            transportadoras aliadas, con una tarifa fija de{" "}
+            <strong>{formatCop(NATIONAL_SHIPPING_COP)}</strong>, y el{" "}
+            <strong>
+              envío es gratis en compras desde {formatCop(FREE_SHIPPING_THRESHOLD_COP)}
+            </strong>
+            . Para destinos internacionales enviamos con{" "}
             <strong>DHL</strong>; el costo depende del destino y se cotiza por
-            pedido.
+            pedido (aproximadamente entre USD {INTERNATIONAL_SHIPPING_USD_MIN}
+            {" y "}USD {INTERNATIONAL_SHIPPING_USD_MAX}). Te confirmamos el
+            valor exacto antes de que pagues.
           </p>
           <p>
             Una vez tu pago sea confirmado, alistamos tu pedido y lo

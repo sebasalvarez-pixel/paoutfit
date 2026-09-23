@@ -4,7 +4,19 @@ export default function robots(): MetadataRoute.Robots {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   return {
     rules: [
-      { userAgent: "*", allow: "/", disallow: ["/admin", "/checkout", "/carrito"] },
+      {
+        userAgent: "*",
+        allow: "/",
+        disallow: [
+          "/admin",
+          "/api",
+          "/checkout",
+          "/carrito",
+          "/pagar",
+          "/pedido-confirmado",
+          "/rastrear-pedido",
+        ],
+      },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
   };

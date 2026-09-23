@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCartStore, cartTotal } from "@/lib/cart-store";
 import { formatCop } from "@/lib/format";
 import { useLocale } from "@/components/LocaleProvider";
+import { OrderTotals } from "@/components/storefront/OrderTotals";
 import { translateColorName } from "@/lib/i18n/dictionary";
 import { createOrder, devSimulatePayment, getAddiAvailability } from "./actions";
 
@@ -52,6 +53,7 @@ export default function CheckoutPage() {
   const [shippingMode, setShippingMode] = useState<"national" | "international">(
     "national",
   );
+  const [hasDiscountCode, setHasDiscountCode] = useState(false);
   const isInternational = shippingMode === "international";
   // Addi solo existe para Colombia: en envíos internacionales siempre se
   // usa la pasarela normal (el link de pago se manda después de cotizar).
@@ -285,6 +287,7 @@ export default function CheckoutPage() {
           </h2>
           <input
             name="discountCode"
+            onChange={(e) => setHasDiscountCode(e.target.value.trim() !== "")}
             placeholder="Ej. BIENVENIDA5"
             className="w-full border border-ink/20 px-3 py-2 bg-white uppercase"
           />
@@ -384,6 +387,14 @@ export default function CheckoutPage() {
               className="text-rose underline"
             >
               {t("checkout_politica_datos")}
+            </a>{" "}
+            {t("checkout_y_los")}{" "}
+            <a
+              href="/terminos-y-condiciones"
+              target="_blank"
+              className="text-rose underline"
+            >
+              {t("footer_terminos")}
             </a>
             .
           </span>
@@ -435,15 +446,12 @@ export default function CheckoutPage() {
             </li>
           ))}
         </ul>
-        <div className="flex justify-between text-sm font-semibold border-t border-ink/10 pt-3">
-          <span>{t("cart_subtotal")}</span>
-          <span>{formatCop(total)}</span>
+        <div className="border-t border-ink/10 pt-3">
+          <OrderTotals subtotalCop={total} international={isInternational} />
         </div>
-        <p className="text-xs text-ink/60 mt-2">
-          {isInternational
-            ? t("checkout_envio_por_cotizar")
-            : t("checkout_envio_impuestos")}
-        </p>
+        {hasDiscountCode && (
+          <p className="text-xs text-ink/60 mt-2">{t("ship_descuento_nota")}</p>
+        )}
       </div>
 
       {/* Formulario oculto que envía a Wompi Web Checkout */}

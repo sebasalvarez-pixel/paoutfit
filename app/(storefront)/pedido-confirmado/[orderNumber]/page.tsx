@@ -87,7 +87,9 @@ export default async function OrderConfirmedPage({
       {order.shippingQuotePending && (
         <div className="flex justify-between text-sm text-ink/60 mb-2">
           <span>{locale === "en" ? "International shipping" : "Envío internacional"}</span>
-          <span>{locale === "en" ? "To be quoted" : "Por cotizar"}</span>
+          <span>
+            {locale === "en" ? "TO BE QUOTED" : "A COTIZAR"} · ≈ USD 100–160
+          </span>
         </div>
       )}
       <div className="flex justify-between font-semibold mb-8">

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCartStore, cartTotal } from "@/lib/cart-store";
 import { formatCop } from "@/lib/format";
 import { useLocale } from "@/components/LocaleProvider";
+import { OrderTotals } from "@/components/storefront/OrderTotals";
 import { translateColorName } from "@/lib/i18n/dictionary";
 
 export default function CartPage() {
@@ -83,11 +84,9 @@ export default function CartPage() {
 
       <div className="bg-blush p-6 h-fit">
         <h2 className="font-heading text-xl mb-4">{t("checkout_resumen")}</h2>
-        <div className="flex justify-between text-sm mb-2">
-          <span>{t("cart_subtotal")}</span>
-          <span>{formatCop(total)}</span>
+        <div className="mb-4">
+          <OrderTotals subtotalCop={total} />
         </div>
-        <p className="text-xs text-ink/60 mb-4">{t("cart_envio_calcula")}</p>
         <Link
           href="/checkout"
           className="block text-center bg-rose text-white py-3 uppercase text-sm tracking-wide hover:bg-plum transition-colors"

@@ -16,8 +16,7 @@ import {
   InternationalQuoteRequest,
 } from "@/emails/InternationalEmails";
 
-const FLAT_SHIPPING_COP = 12000;
-const FREE_SHIPPING_THRESHOLD_COP = 200000;
+import { nationalShippingCop } from "@/lib/shipping";
 
 const checkoutSchema = z
   .object({
@@ -178,9 +177,7 @@ export async function createOrder(
   // cotiza en el panel y ahí se le manda el link de pago al cliente.
   const shippingCop = isInternational
     ? 0
-    : subtotalCop - discountCop >= FREE_SHIPPING_THRESHOLD_COP
-      ? 0
-      : FLAT_SHIPPING_COP;
+    : nationalShippingCop(subtotalCop - discountCop);
   const totalCop = subtotalCop - discountCop + shippingCop;
 
   const attribution = await readAttribution();

@@ -6,6 +6,17 @@ import { NextRequest, NextResponse } from "next/server";
  * en una fase posterior. No requiere ninguna cuenta externa para empezar
  * a usar el panel ya mismo.
  */
+// Comparación que tarda lo mismo acierte o falle, para que nadie pueda
+// adivinar la clave midiendo tiempos de respuesta.
+function safeEqual(a: string, b: string): boolean {
+  let diff = a.length ^ b.length;
+  const len = Math.max(a.length, b.length);
+  for (let i = 0; i < len; i++) {
+    diff |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
+  }
+  return diff === 0;
+}
+
 export function proxy(request: NextRequest) {
   const user = process.env.ADMIN_USERNAME;
   const pass = process.env.ADMIN_PASSWORD;
@@ -21,12 +32,20 @@ export function proxy(request: NextRequest) {
   if (authHeader) {
     const [scheme, encoded] = authHeader.split(" ");
     if (scheme === "Basic" && encoded) {
-      const decoded = atob(encoded);
+      let decoded = "";
+      try {
+        decoded = atob(encoded);
+      } catch {
+        // Cabecera mal formada: se trata como credenciales inválidas.
+      }
       const separatorIndex = decoded.indexOf(":");
       const providedUser = decoded.slice(0, separatorIndex);
       const providedPass = decoded.slice(separatorIndex + 1);
-      if (providedUser === user && providedPass === pass) {
-        return NextResponse.next();
+      if (safeEqual(providedUser, user) && safeEqual(providedPass, pass)) {
+        const response = NextResponse.next();
+        response.headers.set("X-Robots-Tag", "noindex, nofollow");
+        response.headers.set("Cache-Control", "no-store");
+        return response;
       }
     }
   }

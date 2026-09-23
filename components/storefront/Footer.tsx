@@ -116,6 +116,11 @@ export function Footer() {
                 {t("footer_tratamiento_datos")}
               </Link>
             </li>
+            <li>
+              <Link href="/terminos-y-condiciones" className="hover:text-rose">
+                {t("footer_terminos")}
+              </Link>
+            </li>
           </ul>
         </div>
 
