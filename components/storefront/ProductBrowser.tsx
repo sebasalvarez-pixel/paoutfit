@@ -2,9 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { ProductCard } from "@/components/storefront/ProductCard";
+import { Reveal } from "@/components/Reveal";
 import { useLocale } from "@/components/LocaleProvider";
 import { translateColorName } from "@/lib/i18n/dictionary";
 import { categoryLabel } from "@/lib/category-label";
+import { colorHexFor } from "@/lib/colors";
 import type { StoreCategory } from "@/lib/categories";
 import type {
   Product,
@@ -229,7 +231,7 @@ export function ProductBrowser({
                 >
                   <span
                     className="h-3.5 w-3.5 rounded-full border border-ink/20"
-                    style={{ backgroundColor: c.hex ?? "#ddd" }}
+                    style={{ backgroundColor: colorHexFor(c.name, c.hex) }}
                   />
                   {translateColorName(locale, c.name)}
                 </button>
@@ -271,12 +273,13 @@ export function ProductBrowser({
         <p className="text-center text-ink/50 py-16">{t("filtro_sin_resultados")}</p>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-10">
-          {visible.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              bestSeller={bestSellerIds.includes(product.id)}
-            />
+          {visible.map((product, index) => (
+            <Reveal key={product.id} delay={(index % 4) * 80}>
+              <ProductCard
+                product={product}
+                bestSeller={bestSellerIds.includes(product.id)}
+              />
+            </Reveal>
           ))}
         </div>
       )}

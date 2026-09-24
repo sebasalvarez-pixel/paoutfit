@@ -1,8 +1,15 @@
 import "server-only";
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
+
+// Con "join" Prisma trae producto + colores + fotos en UNA sola consulta a la
+// base de datos (en vez de una por cada nivel). La base está lejos del
+// servidor, así que cada viaje de ida y vuelta cuenta.
+const JOIN = "join" as const;
 
 export async function getPublishedProducts() {
   return prisma.product.findMany({
+    relationLoadStrategy: JOIN,
     where: { isPublished: true },
     include: {
       variants: {
@@ -17,6 +24,7 @@ export async function getPublishedProducts() {
 
 export async function getProductsByCategory(category: string) {
   return prisma.product.findMany({
+    relationLoadStrategy: JOIN,
     where: {
       isPublished: true,
       category: { equals: category, mode: "insensitive" },
@@ -34,6 +42,7 @@ export async function getProductsByCategory(category: string) {
 
 export async function getProductByHandle(handle: string) {
   return prisma.product.findUnique({
+    relationLoadStrategy: JOIN,
     where: { handle, isPublished: true },
     include: {
       variants: {
@@ -46,39 +55,29 @@ export async function getProductByHandle(handle: string) {
 }
 
 /**
- * IDs de los productos "más vendidos" según ventas reales (pedidos pagados
- * o enviados). Son los que llevan la estrella en el catálogo. Mientras no
- * haya ventas devuelve una lista vacía: no se marca nada de forma falsa.
+ * IDs de productos ordenados de más a menos vendido, según ventas reales
+ * (pedidos pagados o enviados). Una sola consulta; `cache` hace que el
+ * layout y la página compartan el resultado dentro de la misma visita.
+ */
+const getSalesRanking = cache(async (): Promise<string[]> => {
+  const rows = await prisma.$queryRaw<{ product_id: string; units: number }[]>`
+    SELECT v.product_id, SUM(oi.quantity)::int AS units
+    FROM order_items oi
+    JOIN orders o ON o.id = oi.order_id
+    JOIN product_variants v ON v.id = oi.variant_id
+    WHERE o.status IN ('paid', 'fulfilled')
+    GROUP BY v.product_id
+    ORDER BY units DESC`;
+  return rows.filter((r) => r.units > 0).map((r) => r.product_id);
+});
+
+/**
+ * IDs de los productos "más vendidos": son los que llevan la estrella en el
+ * catálogo. Mientras no haya ventas devuelve una lista vacía: no se marca
+ * nada de forma falsa.
  */
 export async function getBestSellerIds(limit = 3): Promise<string[]> {
-  const sales = await prisma.orderItem.groupBy({
-    by: ["variantId"],
-    where: { order: { status: { in: ["paid", "fulfilled"] } } },
-    _sum: { quantity: true },
-  });
-  if (sales.length === 0) return [];
-
-  const variants = await prisma.productVariant.findMany({
-    where: { id: { in: sales.map((s) => s.variantId) } },
-    select: { id: true, productId: true },
-  });
-  const productOfVariant = new Map(variants.map((v) => [v.id, v.productId]));
-
-  const unitsByProduct = new Map<string, number>();
-  for (const sale of sales) {
-    const productId = productOfVariant.get(sale.variantId);
-    if (!productId) continue;
-    unitsByProduct.set(
-      productId,
-      (unitsByProduct.get(productId) ?? 0) + (sale._sum.quantity ?? 0),
-    );
-  }
-
-  return [...unitsByProduct.entries()]
-    .filter(([, units]) => units > 0)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, limit)
-    .map(([productId]) => productId);
+  return (await getSalesRanking()).slice(0, limit);
 }
 
 /** Primera imagen disponible de un producto (para tarjetas de catálogo). */
@@ -93,72 +92,72 @@ export function getPrimaryImage(
 
 /**
  * "Los más comprados" para el home: productos ordenados por unidades
- * vendidas de verdad (pedidos pagados/enviados). Mientras la tienda no
- * tenga ventas todavía, muestra los productos que ya tienen foto en vez
- * de una sección vacía.
+ * vendidas de verdad. Mientras la tienda no tenga ventas todavía, muestra
+ * los productos que ya tienen foto en vez de una sección vacía.
  */
 export async function getBestSellers(limit = 4) {
-  const topSales = await prisma.orderItem.groupBy({
-    by: ["variantId"],
-    where: { order: { status: { in: ["paid", "fulfilled"] } } },
-    _sum: { quantity: true },
-    orderBy: { _sum: { quantity: "desc" } },
-    take: limit * 3, // variantes de sobra por si varias son del mismo producto
-  });
+  const ids = (await getSalesRanking()).slice(0, limit);
 
-  if (topSales.length > 0) {
-    // Reconstruimos el orden por producto (no por variante) sin duplicar.
-    const variantToProduct = new Map(
-      (
-        await prisma.productVariant.findMany({
-          where: { id: { in: topSales.map((t) => t.variantId) } },
-          select: { id: true, productId: true },
-        })
-      ).map((v) => [v.id, v.productId]),
-    );
-    const productIdsInOrder: string[] = [];
-    for (const sale of topSales) {
-      const productId = variantToProduct.get(sale.variantId);
-      if (productId && !productIdsInOrder.includes(productId)) {
-        productIdsInOrder.push(productId);
-      }
-    }
-
+  if (ids.length > 0) {
     const products = await prisma.product.findMany({
-      where: { id: { in: productIdsInOrder.slice(0, limit) }, isPublished: true },
+      relationLoadStrategy: JOIN,
+      where: { id: { in: ids }, isPublished: true },
       include: {
         variants: {
+          where: { isActive: true },
+          include: { images: { orderBy: { position: "asc" } } },
+          orderBy: { position: "asc" },
+        },
+      },
+    });
+    // Preserva el orden de más vendido a menos vendido.
+    products.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+    if (products.length > 0) return products;
+  }
+
+  return prisma.product.findMany({
+    relationLoadStrategy: JOIN,
+    where: {
+      isPublished: true,
+      variants: { some: { images: { some: {} } } },
+    },
+    include: {
+      variants: {
         where: { isActive: true },
         include: { images: { orderBy: { position: "asc" } } },
         orderBy: { position: "asc" },
       },
-      },
-    });
-    // Preserva el orden de más vendido a menos vendido.
-    products.sort(
-      (a, b) => productIdsInOrder.indexOf(a.id) - productIdsInOrder.indexOf(b.id),
-    );
-    if (products.length > 0) return products;
-  }
-
-  const published = await getPublishedProducts();
-  return published.filter((p) => p.variants.some((v) => v.images.length > 0)).slice(0, limit);
+    },
+    orderBy: { createdAt: "asc" },
+    take: limit,
+  });
 }
 
 /**
- * Imagen para el hero del home y el popup de descuento. Se elige en vivo
- * entre los productos más vendidos (o cualquier producto con foto) en vez
- * de apuntar a un archivo fijo — así nunca queda una imagen rota si esa
- * foto en particular se borra desde el panel admin.
+ * Imagen para el hero del home y el popup de descuento: la foto principal del
+ * producto más vendido (o de cualquier producto con foto). Se elige en vivo
+ * para que nunca quede una imagen rota si una foto se borra desde el panel.
+ * Solo trae UNA fila, no todo el catálogo.
  */
-export async function getHeroImage() {
-  const bestSellers = await getBestSellers(6);
-  for (const product of bestSellers) {
-    for (const variant of product.variants) {
-      if (variant.images[0]) {
-        return { storagePath: variant.images[0].storagePath, alt: product.title };
-      }
-    }
-  }
-  return null;
-}
+export const getHeroImage = cache(async () => {
+  const [topProductId] = await getSalesRanking();
+  const order = [{ variant: { position: "asc" as const } }, { position: "asc" as const }];
+
+  const image =
+    (topProductId
+      ? await prisma.productImage.findFirst({
+          where: { product: { id: topProductId, isPublished: true } },
+          orderBy: order,
+          select: { storagePath: true, altText: true, product: { select: { title: true } } },
+        })
+      : null) ??
+    (await prisma.productImage.findFirst({
+      where: { product: { isPublished: true } },
+      orderBy: [{ product: { createdAt: "asc" as const } }, ...order],
+      select: { storagePath: true, altText: true, product: { select: { title: true } } },
+    }));
+
+  return image
+    ? { storagePath: image.storagePath, alt: image.altText ?? image.product.title }
+    : null;
+});

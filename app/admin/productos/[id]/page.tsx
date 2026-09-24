@@ -2,6 +2,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getAllCategories } from "@/lib/categories";
+import { htmlToText } from "@/lib/description";
 import { AddVariantForm } from "@/components/admin/AddVariantForm";
 import { UploadImageForm } from "@/components/admin/UploadImageForm";
 import { UnsavedChangesGuard } from "@/components/admin/UnsavedChangesGuard";
@@ -70,13 +71,18 @@ export default async function EditProductPage({
           />
         </div>
         <div>
-          <label className="text-xs text-ink/60">Descripción (HTML)</label>
+          <label className="text-xs text-ink/60">Descripción</label>
           <textarea
             name="descriptionHtml"
-            defaultValue={product.descriptionHtml ?? ""}
-            rows={5}
-            className="w-full border border-ink/20 px-3 py-2 mt-1 font-mono text-xs"
+            defaultValue={htmlToText(product.descriptionHtml)}
+            rows={7}
+            placeholder="Escribe la descripción normal, como en un mensaje."
+            className="w-full border border-ink/20 px-3 py-2 mt-1 text-sm leading-relaxed"
           />
+          <p className="text-[11px] text-ink/40 mt-1">
+            Deja una línea en blanco para separar párrafos. Si empiezas una
+            línea con un guion (-), sale como lista con viñetas.
+          </p>
         </div>
         <div className="border-t border-ink/10 pt-4">
           <p className="text-xs uppercase tracking-wide text-ink/50 mb-3">
@@ -92,12 +98,12 @@ export default async function EditProductPage({
             />
           </div>
           <div className="mt-3">
-            <label className="text-xs text-ink/60">Descripción (HTML, inglés)</label>
+            <label className="text-xs text-ink/60">Descripción (inglés)</label>
             <textarea
               name="descriptionHtmlEn"
-              defaultValue={product.descriptionHtmlEn ?? ""}
-              rows={5}
-              className="w-full border border-ink/20 px-3 py-2 mt-1 font-mono text-xs"
+              defaultValue={htmlToText(product.descriptionHtmlEn)}
+              rows={7}
+              className="w-full border border-ink/20 px-3 py-2 mt-1 text-sm leading-relaxed"
             />
           </div>
         </div>

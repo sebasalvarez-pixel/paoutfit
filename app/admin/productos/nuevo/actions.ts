@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { slugify, slugifyHandle } from "@/lib/slug";
+import { textToHtml } from "@/lib/description";
+import { colorHexFor } from "@/lib/colors";
 
 export async function createProduct(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
@@ -13,7 +15,7 @@ export async function createProduct(formData: FormData) {
     (await prisma.category.findFirst({ orderBy: { position: "asc" } }));
   if (!categoryRow) throw new Error("Primero crea una categoría.");
   const category = categoryRow.name;
-  const descriptionHtml = String(formData.get("descriptionHtml") ?? "");
+  const descriptionHtml = textToHtml(String(formData.get("descriptionHtml") ?? ""));
   const basePriceCop = parseInt(String(formData.get("basePriceCop")), 10);
   const isPublished = formData.get("isPublished") === "on";
   const colorName = String(formData.get("colorName") ?? "").trim();
@@ -44,6 +46,7 @@ export async function createProduct(formData: FormData) {
       variants: {
         create: {
           colorName,
+          colorHex: colorHexFor(colorName),
           sku,
           priceCop: basePriceCop,
           inventoryQty,

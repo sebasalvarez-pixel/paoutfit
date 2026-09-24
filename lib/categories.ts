@@ -1,6 +1,5 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
-import { getProductsByCategory } from "@/lib/products";
 
 /** Lo mínimo que necesitan los componentes del cliente para mostrar una categoría. */
 export type StoreCategory = {
@@ -45,25 +44,39 @@ export async function getCategoryBySlug(slug: string) {
  */
 export async function getCategoryImages(categories: StoreCategory[]) {
   const result: Record<string, { storagePath: string; alt: string } | null> = {};
+  const needAuto = categories.filter((c) => !c.imageUrl);
 
-  await Promise.all(
-    categories.map(async (category) => {
-      if (category.imageUrl) {
-        result[category.slug] = { storagePath: category.imageUrl, alt: category.name };
-        return;
-      }
-      const products = await getProductsByCategory(category.name);
-      let found: { storagePath: string; alt: string } | null = null;
-      for (const product of products) {
-        const image = product.variants.find((v) => v.images[0])?.images[0];
-        if (image) {
-          found = { storagePath: image.storagePath, alt: product.title };
-          break;
-        }
-      }
-      result[category.slug] = found;
-    }),
-  );
+  // Una sola consulta con las fotos de todos los productos publicados, en el
+  // mismo orden de siempre (producto más antiguo, color principal, primera
+  // foto); luego se toma la primera de cada categoría.
+  const photos =
+    needAuto.length > 0
+      ? await prisma.productImage.findMany({
+          where: {
+            product: { isPublished: true, category: { in: needAuto.map((c) => c.name) } },
+          },
+          orderBy: [
+            { product: { createdAt: "asc" } },
+            { variant: { position: "asc" } },
+            { position: "asc" },
+          ],
+          select: {
+            storagePath: true,
+            product: { select: { title: true, category: true } },
+          },
+        })
+      : [];
+
+  for (const category of categories) {
+    if (category.imageUrl) {
+      result[category.slug] = { storagePath: category.imageUrl, alt: category.name };
+      continue;
+    }
+    const photo = photos.find((p) => p.product.category === category.name);
+    result[category.slug] = photo
+      ? { storagePath: photo.storagePath, alt: photo.product.title }
+      : null;
+  }
 
   return result;
 }

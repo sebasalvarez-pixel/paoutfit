@@ -6,6 +6,8 @@ import { formatCop } from "@/lib/format";
 import { useCartStore } from "@/lib/cart-store";
 import { useLocale } from "@/components/LocaleProvider";
 import { translateColorName } from "@/lib/i18n/dictionary";
+import { descriptionToDisplayHtml } from "@/lib/description";
+import { colorHexFor } from "@/lib/colors";
 import type {
   Product,
   ProductVariant,
@@ -220,7 +222,7 @@ export function ProductDetail({ product }: { product: ProductWithVariants }) {
 
         <div
           className="prose prose-sm text-ink/70 mt-6 max-w-none"
-          dangerouslySetInnerHTML={{ __html: descriptionHtml ?? "" }}
+          dangerouslySetInnerHTML={{ __html: descriptionToDisplayHtml(descriptionHtml) }}
         />
 
         <div className="mt-8">
@@ -235,12 +237,17 @@ export function ProductDetail({ product }: { product: ProductWithVariants }) {
                 onClick={() => handleSelectVariant(variant.id)}
                 disabled={variant.inventoryQty <= 0}
                 title={variant.colorName}
-                className={`px-3 py-2 text-xs uppercase border transition-colors ${
+                className={`flex items-center gap-2 px-3 py-2 text-xs uppercase border transition-colors ${
                   variant.id === selectedVariantId
-                    ? "border-rose text-rose"
+                    ? "border-rose text-rose ring-1 ring-rose"
                     : "border-ink/20 text-ink/70 hover:border-ink/50"
                 } ${variant.inventoryQty <= 0 ? "opacity-30 line-through" : ""}`}
               >
+                <span
+                  aria-hidden="true"
+                  className="h-3.5 w-3.5 rounded-full border border-ink/20"
+                  style={{ backgroundColor: colorHexFor(variant.colorName, variant.colorHex) }}
+                />
                 {translateColorName(locale, variant.colorName)}
               </button>
             ))}

@@ -37,13 +37,17 @@ export default async function NewProductPage() {
           />
         </div>
         <div>
-          <label className="text-xs text-ink/60">Descripción (HTML)</label>
+          <label className="text-xs text-ink/60">Descripción</label>
           <textarea
             name="descriptionHtml"
-            rows={5}
-            placeholder="<p>Descripción del producto...</p>"
-            className="w-full border border-ink/20 px-3 py-2 mt-1 font-mono text-xs"
+            rows={6}
+            placeholder="Escribe la descripción normal, como en un mensaje."
+            className="w-full border border-ink/20 px-3 py-2 mt-1 text-sm leading-relaxed"
           />
+          <p className="text-[11px] text-ink/40 mt-1">
+            Deja una línea en blanco para separar párrafos. Si empiezas una
+            línea con un guion (-), sale como lista con viñetas.
+          </p>
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>

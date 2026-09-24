@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slug";
+import { textToHtml } from "@/lib/description";
+import { colorHexFor } from "@/lib/colors";
 import { supabaseAdmin, PRODUCT_IMAGES_BUCKET } from "@/lib/supabase";
 
 function revalidateStorefront(handle: string) {
@@ -25,15 +27,24 @@ export async function updateProduct(productId: string, formData: FormData) {
     throw new Error("Esa categoría no existe. Créala primero en Categorías.");
   }
 
+  const title = String(formData.get("title") ?? "").trim();
+  const basePriceCop = parseInt(String(formData.get("basePriceCop")), 10);
+  if (!title) throw new Error("El nombre no puede quedar vacío.");
+  if (!Number.isFinite(basePriceCop) || basePriceCop <= 0) {
+    throw new Error("Ingresa un precio válido.");
+  }
+
   const product = await prisma.product.update({
     where: { id: productId },
     data: {
-      title: String(formData.get("title")),
-      descriptionHtml: String(formData.get("descriptionHtml") ?? ""),
-      titleEn: String(formData.get("titleEn") ?? "") || null,
-      descriptionHtmlEn: String(formData.get("descriptionHtmlEn") ?? "") || null,
+      title,
+      // En el panel se escribe como texto normal; en la tienda se guarda con formato.
+      descriptionHtml: textToHtml(String(formData.get("descriptionHtml") ?? "")),
+      titleEn: String(formData.get("titleEn") ?? "").trim() || null,
+      descriptionHtmlEn:
+        textToHtml(String(formData.get("descriptionHtmlEn") ?? "")) || null,
       category,
-      basePriceCop: parseInt(String(formData.get("basePriceCop")), 10),
+      basePriceCop,
       isPublished: formData.get("isPublished") === "on",
     },
   });
@@ -71,6 +82,7 @@ export async function addVariant(productId: string, formData: FormData) {
     data: {
       productId,
       colorName,
+      colorHex: colorHexFor(colorName),
       sku,
       priceCop,
       inventoryQty: Number.isFinite(inventoryQty) ? inventoryQty : 0,
@@ -112,11 +124,20 @@ export async function updateVariant(
   productHandle: string,
   formData: FormData,
 ) {
+  const priceCop = parseInt(String(formData.get("priceCop")), 10);
+  const inventoryQty = parseInt(String(formData.get("inventoryQty")), 10);
+  if (!Number.isFinite(priceCop) || priceCop <= 0) {
+    throw new Error("Ingresa un precio válido.");
+  }
+  if (!Number.isFinite(inventoryQty) || inventoryQty < 0) {
+    throw new Error("El inventario debe ser 0 o más.");
+  }
+
   await prisma.productVariant.update({
     where: { id: variantId },
     data: {
-      priceCop: parseInt(String(formData.get("priceCop")), 10),
-      inventoryQty: parseInt(String(formData.get("inventoryQty")), 10),
+      priceCop,
+      inventoryQty,
       isActive: formData.get("isActive") === "on",
     },
   });

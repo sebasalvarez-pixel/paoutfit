@@ -5,6 +5,8 @@
 generator client {
   provider = "prisma-client"
   output   = "../app/generated/prisma"
+  // Permite traer producto + colores + fotos en una sola consulta (menos viajes a la base).
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {

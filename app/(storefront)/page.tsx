@@ -4,6 +4,7 @@ import { getBestSellers, getBestSellerIds, getHeroImage } from "@/lib/products";
 import { getCategoryImages, getStoreCategories } from "@/lib/categories";
 import { categoryLabel } from "@/lib/category-label";
 import { ProductCard } from "@/components/storefront/ProductCard";
+import { Reveal } from "@/components/Reveal";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { t } from "@/lib/i18n/dictionary";
 
@@ -33,16 +34,25 @@ export default async function HomePage() {
       {/* Hero */}
       <section className="grid lg:grid-cols-2 min-h-[80vh]">
         <div className="order-2 lg:order-1 flex flex-col justify-center gap-6 px-8 py-16 lg:px-16">
-          <p className="uppercase tracking-[0.3em] text-xs text-rose">
+          <p className="animate-fade-up uppercase tracking-[0.3em] text-xs text-rose">
             Move. Feel. Be You.
           </p>
-          <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl leading-tight text-ink">
+          <h1
+            className="animate-fade-up font-heading text-4xl sm:text-5xl lg:text-6xl leading-tight text-ink"
+            style={{ animationDelay: "120ms" }}
+          >
             {t(locale, "home_hero_title")}
           </h1>
-          <p className="text-ink/70 max-w-md">{t(locale, "home_hero_subtitle")}</p>
+          <p
+            className="animate-fade-up text-ink/70 max-w-md"
+            style={{ animationDelay: "240ms" }}
+          >
+            {t(locale, "home_hero_subtitle")}
+          </p>
           <Link
             href="/coleccion/todos"
-            className="inline-block w-fit bg-rose text-white px-8 py-3 uppercase text-sm tracking-wide hover:bg-plum transition-colors"
+            style={{ animationDelay: "360ms" }}
+            className="animate-fade-up inline-block w-fit bg-rose text-white px-8 py-3 uppercase text-sm tracking-wide hover:bg-plum active:scale-95 transition-all"
           >
             {t(locale, "home_hero_cta")}
           </Link>
@@ -65,11 +75,11 @@ export default async function HomePage() {
       <section
         className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 grid gap-6 ${categoryGridCols}`}
       >
-        {categories.map((cat) => {
+        {categories.map((cat, index) => {
           const image = categoryImages[cat.slug];
           return (
+            <Reveal key={cat.slug} delay={index * 110}>
             <Link
-              key={cat.slug}
               href={`/coleccion/${cat.slug}`}
               className={`group relative h-64 sm:h-80 overflow-hidden flex ${
                 image ? "items-end" : "items-center justify-center border border-rose/20"
@@ -101,22 +111,26 @@ export default async function HomePage() {
                 {categoryLabel(cat, locale)}
               </span>
             </Link>
+            </Reveal>
           );
         })}
       </section>
 
       {/* Destacados */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-8">
-        <h2 className="font-heading text-3xl text-center text-ink mb-10">
-          {t(locale, "home_mas_comprados")}
-        </h2>
+        <Reveal>
+          <h2 className="font-heading text-3xl text-center text-ink mb-10">
+            {t(locale, "home_mas_comprados")}
+          </h2>
+        </Reveal>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
-          {featured.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              bestSeller={bestSellerIds.includes(product.id)}
-            />
+          {featured.map((product, index) => (
+            <Reveal key={product.id} delay={(index % 4) * 90}>
+              <ProductCard
+                product={product}
+                bestSeller={bestSellerIds.includes(product.id)}
+              />
+            </Reveal>
           ))}
         </div>
       </section>
