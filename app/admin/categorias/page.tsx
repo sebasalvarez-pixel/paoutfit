@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getAllCategories } from "@/lib/categories";
 import { CategoryImagePicker } from "@/components/admin/CategoryImagePicker";
+import { ConfirmButton } from "@/components/admin/ConfirmButton";
 import {
   createCategory,
   deleteCategory,
@@ -171,9 +172,12 @@ export default async function AdminCategoriesPage({
                   </form>
                   {total === 0 && (
                     <form action={deleteCategory.bind(null, category.id)}>
-                      <button type="submit" className="text-red-600 hover:underline">
+                      <ConfirmButton
+                        message={`¿Eliminar la categoría "${category.name}"?`}
+                        className="text-red-600 hover:underline"
+                      >
                         Eliminar
-                      </button>
+                      </ConfirmButton>
                     </form>
                   )}
                 </span>

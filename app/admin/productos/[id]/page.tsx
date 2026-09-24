@@ -7,6 +7,7 @@ import { AddVariantForm } from "@/components/admin/AddVariantForm";
 import { UploadImageForm } from "@/components/admin/UploadImageForm";
 import { UnsavedChangesGuard } from "@/components/admin/UnsavedChangesGuard";
 import { AdminForm } from "@/components/admin/AdminForm";
+import { ConfirmButton } from "@/components/admin/ConfirmButton";
 import {
   deleteProductImage,
   setCoverImage,
@@ -267,12 +268,12 @@ export default async function EditProductPage({
                           </form>
                         )}
                         <form action={deleteProductImage.bind(null, img.id)} className="flex-1">
-                          <button
-                            type="submit"
+                          <ConfirmButton
+                            message="¿Borrar esta foto? No se puede deshacer."
                             className="w-full h-full bg-black/70 text-white text-[9px]"
                           >
                             Borrar
-                          </button>
+                          </ConfirmButton>
                         </form>
                       </div>
                     </div>
