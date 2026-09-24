@@ -10,7 +10,7 @@ import {
   WOMPI_CHECKOUT_URL,
 } from "@/lib/wompi";
 import { createAddiApplication, getAddiConfig, isAddiConfigured } from "@/lib/addi";
-import { sendEmail } from "@/lib/resend";
+import { sendEmail, ownerRecipients } from "@/lib/resend";
 import {
   InternationalOrderReceived,
   InternationalQuoteRequest,
@@ -251,9 +251,10 @@ export async function createOrder(
       }),
     });
 
-    if (process.env.OWNER_NOTIFICATION_EMAIL) {
+    const owners = ownerRecipients();
+    if (owners.length > 0) {
       await sendEmail({
-        to: process.env.OWNER_NOTIFICATION_EMAIL,
+        to: owners,
         subject: `🌎 Pedido internacional por cotizar: ${order.orderNumber}`,
         react: InternationalQuoteRequest({
           orderNumber: order.orderNumber,

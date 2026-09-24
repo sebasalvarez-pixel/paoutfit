@@ -13,8 +13,20 @@ const FROM = process.env.RESEND_FROM_EMAIL ?? "PAOUTFIT <onboarding@resend.dev>"
  * de la cuenta) o si hay un problema de red. Los fallos solo se
  * registran en consola.
  */
+/**
+ * Correos que reciben los avisos de la tienda (nueva venta, cotización
+ * internacional). OWNER_NOTIFICATION_EMAIL admite varios separados por coma:
+ * "ana@correo.com, luis@correo.com".
+ */
+export function ownerRecipients(): string[] {
+  return (process.env.OWNER_NOTIFICATION_EMAIL ?? "")
+    .split(/[,;]/)
+    .map((e) => e.trim())
+    .filter(Boolean);
+}
+
 export async function sendEmail(params: {
-  to: string;
+  to: string | string[];
   subject: string;
   react: React.ReactElement;
 }) {

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { sendEmail } from "@/lib/resend";
+import { sendEmail, ownerRecipients } from "@/lib/resend";
 import { OrderConfirmation } from "@/emails/OrderConfirmation";
+import { OrderShipped } from "@/emails/OrderShipped";
 import { NewOrderNotification } from "@/emails/NewOrderNotification";
 import type { OrderStatus } from "@/app/generated/prisma/client";
 
@@ -67,7 +68,13 @@ export async function applyOrderStatusTransition(params: {
     }
   });
 
-  if (params.status === "paid" && !alreadyInStatus) {
+  if (alreadyInStatus) return;
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const locale = order.customerLocale === "en" ? "en" : "es";
+  const trackUrl = `${appUrl}/rastrear-pedido`;
+
+  if (params.status === "paid") {
     const itemsForEmail = order.items.map((i) => ({
       title: i.productTitle,
       color: i.colorName,
@@ -75,33 +82,85 @@ export async function applyOrderStatusTransition(params: {
       unitPriceCop: i.unitPriceCop,
     }));
 
-    // Confirmación para la clienta que compró.
+    // Dirección de envío en líneas legibles, para el cliente y para la tienda.
+    const address = order.shippingAddress as {
+      line1?: string;
+      line2?: string;
+      city?: string;
+      department?: string;
+      country?: string;
+      postalCode?: string;
+    };
+    const addressLines = [
+      order.customerName,
+      address.line1,
+      address.line2,
+      [address.city, address.department].filter(Boolean).join(", "),
+      [address.country, address.postalCode].filter(Boolean).join(" · "),
+    ].filter((l): l is string => Boolean(l && l.trim()));
+
+    // Confirmación para la clienta que compró (en su idioma).
     await sendEmail({
       to: order.customerEmail,
-      subject: `Confirmamos tu pedido ${order.orderNumber} — PAOUTFIT`,
+      subject:
+        locale === "en"
+          ? `Your order ${order.orderNumber} is confirmed — PAOUTFIT`
+          : `Confirmamos tu pedido ${order.orderNumber} — PAOUTFIT`,
       react: OrderConfirmation({
         orderNumber: order.orderNumber,
         customerName: order.customerName,
         items: itemsForEmail,
+        subtotalCop: order.subtotalCop,
+        discountCop: order.discountCop,
+        shippingCop: order.shippingCop,
         totalCop: order.totalCop,
+        addressLines,
+        trackUrl,
+        locale,
       }),
     });
 
-    // Aviso de nueva venta para la dueña de la tienda (mientras no existe
-    // el panel admin, este correo es la forma en que ella se entera).
-    if (process.env.OWNER_NOTIFICATION_EMAIL) {
+    // Aviso de nueva venta para la tienda (uno o varios correos).
+    const owners = ownerRecipients();
+    if (owners.length > 0) {
       await sendEmail({
-        to: process.env.OWNER_NOTIFICATION_EMAIL,
-        subject: `💰 Nueva venta: ${order.orderNumber}`,
+        to: owners,
+        subject: `💰 Nueva venta ${order.orderNumber} — $${order.totalCop.toLocaleString("es-CO")}`,
         react: NewOrderNotification({
           orderNumber: order.orderNumber,
           customerName: order.customerName,
           customerEmail: order.customerEmail,
           customerPhone: order.customerPhone,
           items: itemsForEmail,
+          subtotalCop: order.subtotalCop,
+          discountCop: order.discountCop,
+          shippingCop: order.shippingCop,
           totalCop: order.totalCop,
+          addressLines,
+          paymentMethod: order.paymentProvider === "addi" ? "Addi" : "Wompi (tarjeta / PSE)",
+          isInternational: order.isInternational,
+          adminUrl: `${appUrl}/admin/pedidos/${order.id}`,
         }),
       });
     }
+  }
+
+  // Cuando la tienda registra el envío, la clienta recibe su guía por correo.
+  if (params.status === "fulfilled") {
+    await sendEmail({
+      to: order.customerEmail,
+      subject:
+        locale === "en"
+          ? `Your order ${order.orderNumber} is on its way — PAOUTFIT`
+          : `Tu pedido ${order.orderNumber} va en camino — PAOUTFIT`,
+      react: OrderShipped({
+        orderNumber: order.orderNumber,
+        customerName: order.customerName,
+        carrier: order.carrier,
+        trackingNumber: order.trackingNumber,
+        trackUrl,
+        locale,
+      }),
+    });
   }
 }
