@@ -17,8 +17,22 @@ const globalForPrisma = globalThis as unknown as {
 // porque cada instancia del servidor tiene su propio pool y el pooler de
 // Supabase (plan gratuito) admite pocas conexiones a la vez.
 const isProduction = process.env.NODE_ENV === "production";
+
+// El pooler de Supabase ofrece dos puertos: 5432 ("modo sesión", solo 15
+// clientes a la vez: se llena con unas pocas visitas simultáneas) y 6543
+// ("modo transacción", pensado para servidores sin estado como Netlify, admite
+// cientos). La app usa el segundo en producción; las migraciones locales
+// siguen usando el 5432 de DATABASE_URL, que es lo que necesitan.
+function resolveConnectionString() {
+  const url = process.env.DATABASE_URL;
+  if (isProduction && url?.includes("pooler.supabase.com:5432")) {
+    return url.replace("pooler.supabase.com:5432", "pooler.supabase.com:6543");
+  }
+  return url;
+}
+
 const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: resolveConnectionString(),
   max: isProduction ? 3 : 10,
   idleTimeoutMillis: isProduction ? 20000 : 1000,
   connectionTimeoutMillis: 15000,

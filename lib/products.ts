@@ -140,24 +140,25 @@ export async function getBestSellers(limit = 4) {
  * Solo trae UNA fila, no todo el catálogo.
  */
 export const getHeroImage = cache(async () => {
-  const [topProductId] = await getSalesRanking();
-  const order = [{ variant: { position: "asc" as const } }, { position: "asc" as const }];
-
-  const image =
-    (topProductId
-      ? await prisma.productImage.findFirst({
-          where: { product: { id: topProductId, isPublished: true } },
-          orderBy: order,
-          select: { storagePath: true, altText: true, product: { select: { title: true } } },
-        })
-      : null) ??
-    (await prisma.productImage.findFirst({
-      where: { product: { isPublished: true } },
-      orderBy: [{ product: { createdAt: "asc" as const } }, ...order],
-      select: { storagePath: true, altText: true, product: { select: { title: true } } },
-    }));
-
-  return image
-    ? { storagePath: image.storagePath, alt: image.altText ?? image.product.title }
-    : null;
+  // Todo en UNA consulta: primero el producto con más unidades vendidas
+  // (0 si aún no hay ventas), luego el más antiguo; dentro de él, su color
+  // principal y su primera foto.
+  const rows = await prisma.$queryRaw<{ storage_path: string; alt: string }[]>`
+    SELECT i.storage_path, COALESCE(i.alt_text, p.title) AS alt
+    FROM product_images i
+    JOIN products p ON p.id = i.product_id
+    LEFT JOIN product_variants v ON v.id = i.variant_id
+    WHERE p.is_published = true
+    ORDER BY
+      (SELECT COALESCE(SUM(oi.quantity), 0)
+         FROM order_items oi
+         JOIN orders o ON o.id = oi.order_id
+         JOIN product_variants sv ON sv.id = oi.variant_id
+        WHERE sv.product_id = p.id AND o.status IN ('paid', 'fulfilled')) DESC,
+      p.created_at ASC,
+      v.position ASC NULLS LAST,
+      i.position ASC
+    LIMIT 1`;
+  const row = rows[0];
+  return row ? { storagePath: row.storage_path, alt: row.alt } : null;
 });
