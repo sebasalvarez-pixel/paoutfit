@@ -35,7 +35,9 @@ export function AdminForm({
       try {
         await action(formData);
         return { status: "ok", at: Date.now() };
-      } catch {
+      } catch (error) {
+        // Queda en la consola del navegador para poder diagnosticar.
+        console.error("[AdminForm] No se pudo guardar:", error);
         return { status: "error", at: Date.now() };
       }
     },
