@@ -4,7 +4,9 @@ import { getLocale } from "@/lib/i18n/get-locale";
 import { formatCop } from "@/lib/format";
 import {
   FREE_SHIPPING_THRESHOLD_COP,
-  NATIONAL_SHIPPING_COP,
+  NATIONAL_SHIPPING_BASE_COP,
+  NATIONAL_SHIPPING_COASTAL_COP,
+  NATIONAL_SHIPPING_NEIVA_COP,
 } from "@/lib/shipping";
 
 export const metadata: Metadata = {
@@ -60,9 +62,13 @@ export default async function TermsPage() {
 
         <h2>4. Shipping</h2>
         <p>
-          National shipping has a flat rate of{" "}
-          {formatCop(NATIONAL_SHIPPING_COP)} and is free from{" "}
-          {formatCop(FREE_SHIPPING_THRESHOLD_COP)}. International shipping
+          We are based in Neiva, Huila: shipping there costs{" "}
+          {formatCop(NATIONAL_SHIPPING_NEIVA_COP)}. The flat rate to the rest
+          of the country is {formatCop(NATIONAL_SHIPPING_BASE_COP)}, and to
+          the Caribbean coast (Atlántico, Bolívar, La Guajira and nearby
+          departments) it is {formatCop(NATIONAL_SHIPPING_COASTAL_COP)}.
+          Shipping is free from {formatCop(FREE_SHIPPING_THRESHOLD_COP)}.
+          International shipping
           (DHL) is quoted per order and confirmed to you before you pay.
           Delivery times are estimates and depend on the carrier. International
           customers are responsible for customs, duties, and import taxes of
@@ -150,8 +156,11 @@ export default async function TermsPage() {
 
       <h2>4. Envíos</h2>
       <p>
-        El envío nacional tiene una tarifa fija de{" "}
-        {formatCop(NATIONAL_SHIPPING_COP)} y es gratis desde{" "}
+        Estamos ubicados en Neiva, Huila: el envío allí cuesta{" "}
+        {formatCop(NATIONAL_SHIPPING_NEIVA_COP)}. La tarifa fija al resto del
+        país es de {formatCop(NATIONAL_SHIPPING_BASE_COP)}, y a la Costa
+        Caribe (Atlántico, Bolívar, La Guajira y departamentos aledaños) es de{" "}
+        {formatCop(NATIONAL_SHIPPING_COASTAL_COP)}. El envío es gratis desde{" "}
         {formatCop(FREE_SHIPPING_THRESHOLD_COP)}. El envío internacional (DHL)
         se cotiza por pedido y te lo confirmamos antes de que pagues. Los
         tiempos de entrega son estimados y dependen de la transportadora. En

@@ -6,7 +6,9 @@ import {
   FREE_SHIPPING_THRESHOLD_COP,
   INTERNATIONAL_SHIPPING_USD_MAX,
   INTERNATIONAL_SHIPPING_USD_MIN,
-  NATIONAL_SHIPPING_COP,
+  NATIONAL_SHIPPING_BASE_COP,
+  NATIONAL_SHIPPING_COASTAL_COP,
+  NATIONAL_SHIPPING_NEIVA_COP,
 } from "@/lib/shipping";
 
 export const metadata: Metadata = {
@@ -62,11 +64,15 @@ export default async function InfoPage() {
           <h2 className="font-heading text-2xl text-ink mb-4">🚚 Shipping</h2>
           <div className="space-y-3 text-sm text-ink/80">
             <p>
-              Within Colombia we ship nationwide through our carrier partners
-              for a flat rate of{" "}
-              <strong>{formatCop(NATIONAL_SHIPPING_COP)}</strong>, and{" "}
+              We are based in Neiva, Huila, so shipping there costs{" "}
+              <strong>{formatCop(NATIONAL_SHIPPING_NEIVA_COP)}</strong>. To the
+              rest of the country the flat rate is{" "}
+              <strong>{formatCop(NATIONAL_SHIPPING_BASE_COP)}</strong>, and to
+              the Caribbean coast (Atlántico, Bolívar, La Guajira and nearby
+              departments) it's{" "}
+              <strong>{formatCop(NATIONAL_SHIPPING_COASTAL_COP)}</strong>.{" "}
               <strong>
-                shipping is free on orders of {formatCop(FREE_SHIPPING_THRESHOLD_COP)} or more
+                Shipping is free on orders of {formatCop(FREE_SHIPPING_THRESHOLD_COP)} or more
               </strong>
               . For international destinations we ship with{" "}
               <strong>DHL</strong>; the cost depends on the destination and is
@@ -251,9 +257,13 @@ export default async function InfoPage() {
         <h2 className="font-heading text-2xl text-ink mb-4">🚚 Envíos</h2>
         <div className="space-y-3 text-sm text-ink/80">
           <p>
-            Dentro de Colombia enviamos a todo el país con nuestras
-            transportadoras aliadas, con una tarifa fija de{" "}
-            <strong>{formatCop(NATIONAL_SHIPPING_COP)}</strong>, y el{" "}
+            Estamos ubicados en Neiva, Huila, así que el envío allí cuesta{" "}
+            <strong>{formatCop(NATIONAL_SHIPPING_NEIVA_COP)}</strong>. Al
+            resto del país la tarifa fija es de{" "}
+            <strong>{formatCop(NATIONAL_SHIPPING_BASE_COP)}</strong>, y a la
+            Costa Caribe (Atlántico, Bolívar, La Guajira y departamentos
+            aledaños) es de{" "}
+            <strong>{formatCop(NATIONAL_SHIPPING_COASTAL_COP)}</strong>. El{" "}
             <strong>
               envío es gratis en compras desde {formatCop(FREE_SHIPPING_THRESHOLD_COP)}
             </strong>

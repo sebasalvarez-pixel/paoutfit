@@ -6,29 +6,38 @@ import {
   FREE_SHIPPING_THRESHOLD_COP,
   INTERNATIONAL_SHIPPING_USD_MAX,
   INTERNATIONAL_SHIPPING_USD_MIN,
+  NATIONAL_SHIPPING_NEIVA_COP,
   amountToFreeShippingCop,
   nationalShippingCop,
+  shippingZoneFor,
 } from "@/lib/shipping";
 
 /**
  * Subtotal, envío y total, más el aviso de cuánto falta para envío gratis.
  * Se usa en el carrito, en el panel del carrito y en el checkout, para que
  * el cliente vea el valor final antes de pagar (nada de sorpresas en Addi).
+ * `city`/`department` ajustan el envío en vivo cuando ya se conocen
+ * (checkout); sin ellos se muestra la tarifa base nacional.
  */
 export function OrderTotals({
   subtotalCop,
   international = false,
   showTotal = true,
+  city,
+  department,
 }: {
   subtotalCop: number;
   international?: boolean;
   showTotal?: boolean;
+  city?: string;
+  department?: string;
 }) {
   const { t } = useLocale();
 
-  const shippingCop = nationalShippingCop(subtotalCop);
+  const shippingCop = nationalShippingCop(subtotalCop, city, department);
   const missing = amountToFreeShippingCop(subtotalCop);
   const progress = Math.min(100, (subtotalCop / FREE_SHIPPING_THRESHOLD_COP) * 100);
+  const zoneKnown = shippingZoneFor(city, department) !== "national" || Boolean(city || department);
 
   return (
     <div className="space-y-2 text-sm">
@@ -58,6 +67,12 @@ export function OrderTotals({
               {shippingCop === 0 ? t("ship_gratis") : formatCop(shippingCop)}
             </span>
           </div>
+          {!zoneKnown && shippingCop > 0 && (
+            <p className="text-[11px] text-ink/50">
+              {t("ship_varia_ciudad_prefix")} {formatCop(NATIONAL_SHIPPING_NEIVA_COP)}{" "}
+              {t("ship_varia_ciudad_sufijo")}
+            </p>
+          )}
 
           {missing > 0 ? (
             <div className="pt-1">

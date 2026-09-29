@@ -177,7 +177,7 @@ export async function createOrder(
   // cotiza en el panel y ahí se le manda el link de pago al cliente.
   const shippingCop = isInternational
     ? 0
-    : nationalShippingCop(subtotalCop - discountCop);
+    : nationalShippingCop(subtotalCop - discountCop, data.city, data.department);
   const totalCop = subtotalCop - discountCop + shippingCop;
 
   const attribution = await readAttribution();

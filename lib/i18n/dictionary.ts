@@ -85,6 +85,8 @@ export const dictionary = {
     ship_ya_gratis: "¡Tienes envío gratis!",
     ship_total_mas_envio: "Total sin envío. El envío se suma cuando lo cotizamos.",
     ship_descuento_nota: "El código de descuento se resta al confirmar el pedido.",
+    ship_varia_ciudad_prefix: "Varía según tu ciudad (desde",
+    ship_varia_ciudad_sufijo: "para Neiva-Huila).",
 
     // Checkout
     checkout_title: "Finalizar compra",
@@ -266,6 +268,8 @@ export const dictionary = {
     ship_ya_gratis: "You get free shipping!",
     ship_total_mas_envio: "Total without shipping. Shipping is added once we quote it.",
     ship_descuento_nota: "The discount code is applied when you confirm the order.",
+    ship_varia_ciudad_prefix: "Varies by city (from",
+    ship_varia_ciudad_sufijo: "for Neiva-Huila).",
 
     // Checkout
     checkout_title: "Checkout",

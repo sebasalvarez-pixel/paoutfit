@@ -30,6 +30,55 @@ const COUNTRY_SUGGESTIONS = [
   "Australia",
 ];
 
+// Sugerencias para ciudad/departamento (sigue siendo texto libre): ayudan a
+// escribir bien "Neiva" y "Huila" — de eso depende la tarifa de envío más
+// barata — y las principales ciudades del país.
+const CITY_SUGGESTIONS = [
+  "Neiva",
+  "Bogotá",
+  "Medellín",
+  "Cali",
+  "Barranquilla",
+  "Cartagena",
+  "Bucaramanga",
+  "Pereira",
+  "Manizales",
+  "Ibagué",
+  "Villavicencio",
+  "Santa Marta",
+  "Cúcuta",
+  "Pasto",
+  "Armenia",
+  "Popayán",
+  "Riohacha",
+  "Montería",
+  "Sincelejo",
+  "Valledupar",
+];
+
+const DEPARTMENT_SUGGESTIONS = [
+  "Huila",
+  "Cundinamarca",
+  "Antioquia",
+  "Valle del Cauca",
+  "Atlántico",
+  "Bolívar",
+  "Santander",
+  "Risaralda",
+  "Caldas",
+  "Tolima",
+  "Meta",
+  "Magdalena",
+  "Norte de Santander",
+  "Nariño",
+  "Quindío",
+  "Cauca",
+  "La Guajira",
+  "Córdoba",
+  "Sucre",
+  "Cesar",
+];
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, clear } = useCartStore();
@@ -54,6 +103,8 @@ export default function CheckoutPage() {
     "national",
   );
   const [hasDiscountCode, setHasDiscountCode] = useState(false);
+  const [city, setCity] = useState("");
+  const [department, setDepartment] = useState("");
   const isInternational = shippingMode === "international";
   // Addi solo existe para Colombia: en envíos internacionales siempre se
   // usa la pasarela normal (el link de pago se manda después de cotizar).
@@ -254,16 +305,36 @@ export default function CheckoutPage() {
             placeholder={t("checkout_apartamento")}
             className="w-full border border-ink/20 px-3 py-2 bg-white"
           />
+          {!isInternational && (
+            <>
+              <datalist id="ciudades-co">
+                {CITY_SUGGESTIONS.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+              <datalist id="departamentos-co">
+                {DEPARTMENT_SUGGESTIONS.map((d) => (
+                  <option key={d} value={d} />
+                ))}
+              </datalist>
+            </>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <input
               name="city"
+              list={isInternational ? undefined : "ciudades-co"}
               required
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
               placeholder={t("checkout_ciudad")}
               className="w-full border border-ink/20 px-3 py-2 bg-white"
             />
             <input
               name="department"
+              list={isInternational ? undefined : "departamentos-co"}
               required={!isInternational}
+              value={department}
+              onChange={(e) => setDepartment(e.target.value)}
               placeholder={
                 isInternational
                   ? t("checkout_estado_provincia")
@@ -447,7 +518,12 @@ export default function CheckoutPage() {
           ))}
         </ul>
         <div className="border-t border-ink/10 pt-3">
-          <OrderTotals subtotalCop={total} international={isInternational} />
+          <OrderTotals
+            subtotalCop={total}
+            international={isInternational}
+            city={city}
+            department={department}
+          />
         </div>
         {hasDiscountCode && (
           <p className="text-xs text-ink/60 mt-2">{t("ship_descuento_nota")}</p>
