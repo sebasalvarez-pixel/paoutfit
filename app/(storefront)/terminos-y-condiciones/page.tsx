@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { formatCop } from "@/lib/format";
-import { PAYMENT_FEE_PERCENT } from "@/lib/payment-fees";
 import {
   FREE_SHIPPING_THRESHOLD_COP,
   NATIONAL_SHIPPING_BASE_COP,
@@ -57,9 +56,9 @@ export default async function TermsPage() {
           providers under their own terms; we never store card data.
         </p>
         <p>
-          The payment method has a processing fee that is added to your total
-          and shown before you pay: {PAYMENT_FEE_PERCENT.wompi}% for card / PSE
-          (Wompi) and {PAYMENT_FEE_PERCENT.addi}% for Addi.
+          Each payment method has a processing fee, which covers what the payment
+          platform (Wompi or Addi) charges the store. It is added to your total
+          and shown in pesos before you pay.
         </p>
         <p>
           Addi is a credit product offered by a third party. Its approval,
@@ -156,9 +155,9 @@ export default async function TermsPage() {
         propios términos; nosotros nunca almacenamos datos de tarjetas.
       </p>
       <p>
-        El medio de pago tiene un costo de procesamiento que se suma a tu total
-        y se muestra antes de pagar: {PAYMENT_FEE_PERCENT.wompi} % con
-        tarjeta / PSE (Wompi) y {PAYMENT_FEE_PERCENT.addi} % con Addi.
+        Cada medio de pago tiene un costo de procesamiento, que cubre lo que la
+        plataforma de pago (Wompi o Addi) le cobra a la tienda. Se suma a tu
+        total y se muestra en pesos antes de pagar.
       </p>
       <p>
         Addi es un producto de crédito ofrecido por un tercero. La

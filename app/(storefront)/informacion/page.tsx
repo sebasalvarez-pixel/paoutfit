@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { formatCop } from "@/lib/format";
-import { PAYMENT_FEE_PERCENT } from "@/lib/payment-fees";
 import {
   FREE_SHIPPING_THRESHOLD_COP,
   INTERNATIONAL_SHIPPING_USD_MAX,
@@ -105,9 +104,9 @@ export default async function InfoPage() {
           <div className="space-y-3 text-sm text-ink/80">
             <p>We accept the following 100% secure payment methods:</p>
             <ul className="list-disc pl-5 space-y-1">
-              <li>Credit and debit cards, through Wompi (+{PAYMENT_FEE_PERCENT.wompi}% processing fee).</li>
-              <li>PSE (bank transfer), through Wompi (+{PAYMENT_FEE_PERCENT.wompi}% processing fee).</li>
-              <li>Buy now, pay later, with Addi (+{PAYMENT_FEE_PERCENT.addi}% processing fee).</li>
+              <li>Credit and debit cards, through Wompi (plus a processing fee).</li>
+              <li>PSE (bank transfer), through Wompi (plus a processing fee).</li>
+              <li>Buy now, pay later, with Addi (plus a processing fee).</li>
             </ul>
             <p className="text-ink/50">
               We never store your card details — payment is processed
@@ -300,9 +299,9 @@ export default async function InfoPage() {
         <div className="space-y-3 text-sm text-ink/80">
           <p>Aceptamos los siguientes medios de pago, 100% seguros:</p>
           <ul className="list-disc pl-5 space-y-1">
-            <li>Tarjetas de crédito y débito, a través de Wompi (+{PAYMENT_FEE_PERCENT.wompi} % de costo del medio de pago).</li>
-            <li>PSE (pago desde tu cuenta bancaria), a través de Wompi (+{PAYMENT_FEE_PERCENT.wompi} %).</li>
-            <li>Compra ahora, paga después, con Addi (+{PAYMENT_FEE_PERCENT.addi} %).</li>
+            <li>Tarjetas de crédito y débito, a través de Wompi (más un costo de procesamiento).</li>
+            <li>PSE (pago desde tu cuenta bancaria), a través de Wompi (más un costo de procesamiento).</li>
+            <li>Compra ahora, paga después, con Addi (más un costo de procesamiento).</li>
           </ul>
           <p className="text-ink/50">
             Nunca almacenamos los datos de tu tarjeta — el pago se procesa

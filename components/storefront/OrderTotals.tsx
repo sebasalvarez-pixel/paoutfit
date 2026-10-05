@@ -11,7 +11,7 @@ import {
   nationalShippingCop,
   shippingZoneFor,
 } from "@/lib/shipping";
-import { PAYMENT_FEE_PERCENT, paymentFeeCop, type PaymentMethodKey } from "@/lib/payment-fees";
+import { paymentFeeCop, type PaymentMethodKey } from "@/lib/payment-fees";
 
 /**
  * Subtotal, envío y total, más el aviso de cuánto falta para envío gratis.
@@ -85,7 +85,7 @@ export function OrderTotals({
           {paymentMethod && feeCop > 0 && (
             <div className="flex justify-between">
               <span>
-                {t("ship_costo_pago")} ({PAYMENT_FEE_PERCENT[paymentMethod]}%)
+                {t("ship_costo_pago")}
               </span>
               <span>{formatCop(feeCop)}</span>
             </div>
@@ -126,7 +126,7 @@ export function OrderTotals({
       )}
       {showTotal && !international && !paymentMethod && (
         <p className="text-xs text-ink/60">
-          {t("ship_costo_pago_nota")} {PAYMENT_FEE_PERCENT.wompi}% · Addi {PAYMENT_FEE_PERCENT.addi}%.
+          {t("ship_costo_pago_nota")}
         </p>
       )}
     </div>
