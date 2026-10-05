@@ -10,6 +10,7 @@ const LINKS = [
   { href: "/admin/pedidos", label: "Pedidos" },
   { href: "/admin/descuentos", label: "Descuentos" },
   { href: "/admin/suscriptores", label: "Suscriptores" },
+  { href: "/admin/estado", label: "Estado" },
 ];
 
 export function AdminNav() {
