@@ -1,5 +1,6 @@
 import { ownerRecipients } from "@/lib/resend";
 import { isAddiConfigured } from "@/lib/addi";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -78,6 +79,14 @@ function otherChecks(): Check[] {
       detail: isAddiConfigured() ? undefined : "Faltan las credenciales de Addi.",
     },
     {
+      label: "Addi: usuario y clave para recibir sus avisos de pago",
+      ok: Boolean(process.env.ADDI_WEBHOOK_USERNAME && process.env.ADDI_WEBHOOK_PASSWORD),
+      detail:
+        process.env.ADDI_WEBHOOK_USERNAME && process.env.ADDI_WEBHOOK_PASSWORD
+          ? undefined
+          : "Faltan ADDI_WEBHOOK_USERNAME / ADDI_WEBHOOK_PASSWORD: sin ellas se rechazan los avisos de Addi.",
+    },
+    {
       label: "Contraseña del panel cambiada",
       ok: process.env.ADMIN_PASSWORD !== "cambiame123",
       detail:
@@ -111,9 +120,23 @@ function Row({ check }: { check: Check }) {
   );
 }
 
-export default function AdminStatusPage() {
+export default async function AdminStatusPage() {
   const wompi = wompiChecks();
   const others = otherChecks();
+
+  // Avisos automáticos de pago recibidos (Wompi y Addi). Si el contador sigue
+  // en cero después de una venta, la URL de eventos no está bien registrada.
+  const events = await prisma.paymentWebhookEvent.groupBy({
+    by: ["provider"],
+    _count: { _all: true },
+    _max: { createdAt: true },
+  });
+  const eventInfo = (provider: "wompi" | "addi") => {
+    const row = events.find((e) => e.provider === provider);
+    return row
+      ? `${row._count._all} recibido(s); el último: ${row._max.createdAt?.toLocaleString("es-CO", { timeZone: "America/Bogota" })}`
+      : "Todavía no ha llegado ninguno.";
+  };
   return (
     <div className="max-w-2xl space-y-8">
       <div>
@@ -132,7 +155,10 @@ export default function AdminStatusPage() {
             <Row key={c.label} check={c} />
           ))}
         </ul>
-        <p className="text-xs text-ink/50 mt-2">
+        <p className="text-xs text-ink/70 mt-2">
+          Avisos de pago de Wompi: {eventInfo("wompi")}
+        </p>
+        <p className="text-xs text-ink/50 mt-1">
           Además hay que registrar en el panel de Wompi la URL de eventos:{" "}
           <code>{(process.env.NEXT_PUBLIC_APP_URL ?? "")}/api/webhooks/wompi</code>
         </p>
@@ -140,6 +166,7 @@ export default function AdminStatusPage() {
 
       <section>
         <h2 className="text-xs uppercase tracking-wide text-ink/50 mb-2">Otras configuraciones</h2>
+        <p className="text-xs text-ink/70 mb-2">Avisos de pago de Addi: {eventInfo("addi")}</p>
         <ul className="bg-white border border-ink/10 rounded divide-y divide-ink/10">
           {others.map((c) => (
             <Row key={c.label} check={c} />

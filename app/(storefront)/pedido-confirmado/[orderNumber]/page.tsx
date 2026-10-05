@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { syncWompiPaymentOnReturn } from "@/lib/orders";
 import OrderStatusWatcher from "@/components/storefront/OrderStatusWatcher";
 import { formatCop } from "@/lib/format";
 import { getLocale } from "@/lib/i18n/get-locale";
@@ -27,16 +28,31 @@ const STATUS_LABEL: Record<Locale, Record<string, string>> = {
 
 export default async function OrderConfirmedPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ orderNumber: string }>;
+  searchParams: Promise<{ id?: string }>;
 }) {
   const { orderNumber } = await params;
+  const { id: wompiTransactionId } = await searchParams;
   const locale = await getLocale();
-  const order = await prisma.order.findUnique({
+  let order = await prisma.order.findUnique({
     where: { orderNumber },
     include: { items: true },
   });
   if (!order) notFound();
+
+  // Si el cliente vuelve de Wompi y el pedido sigue pendiente, se confirma el
+  // pago consultándole a Wompi directamente (por si su aviso automático tarda
+  // o no llega). Solo cuenta lo que responda Wompi, no el navegador.
+  if (order.status === "pending" && wompiTransactionId) {
+    await syncWompiPaymentOnReturn(order, wompiTransactionId);
+    order = await prisma.order.findUnique({
+      where: { orderNumber },
+      include: { items: true },
+    });
+    if (!order) notFound();
+  }
 
   return (
     <div className="mx-auto max-w-xl px-4 py-20 text-center">

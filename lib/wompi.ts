@@ -74,3 +74,48 @@ export function verifyWompiEventSignature(params: {
   const expected = crypto.createHash("sha256").update(raw).digest("hex");
   return expected === params.checksum;
 }
+
+export type WompiTransaction = {
+  id: string;
+  reference: string;
+  status: string;
+  amountInCents: number;
+  currency: string;
+};
+
+function wompiApiBase() {
+  const key = process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY ?? "";
+  return key.startsWith("pub_test_")
+    ? "https://sandbox.wompi.co/v1"
+    : "https://production.wompi.co/v1";
+}
+
+/**
+ * Le pregunta directamente a Wompi (servidor a servidor) por una
+ * transacción. Wompi agrega ?id=<transacción> a la URL a la que vuelve el
+ * cliente; ese id NO se cree tal cual: se consulta aquí y solo cuenta lo
+ * que responda Wompi. Devuelve null si no existe o hay algún problema.
+ */
+export async function fetchWompiTransaction(id: string): Promise<WompiTransaction | null> {
+  if (!/^[A-Za-z0-9_-]{5,80}$/.test(id)) return null;
+  try {
+    const res = await fetch(`${wompiApiBase()}/transactions/${encodeURIComponent(id)}`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { data?: Record<string, unknown> };
+    const d = json.data;
+    if (!d || typeof d.id !== "string") return null;
+    return {
+      id: d.id,
+      reference: String(d.reference ?? ""),
+      status: String(d.status ?? ""),
+      amountInCents: Number(d.amount_in_cents ?? 0),
+      currency: String(d.currency ?? ""),
+    };
+  } catch (error) {
+    console.error("[wompi] No se pudo consultar la transacción:", error);
+    return null;
+  }
+}
