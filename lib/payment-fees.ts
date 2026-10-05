@@ -34,13 +34,15 @@ export const PAYMENT_FEE_CONFIG: Record<
     ivaPercent: 19,
     source: "Tarifa oficial publicada por Wompi (2,65 % + $700 + IVA).",
   },
-  // Addi no publica su tarifa: es la de nuestro contrato. Confirmar si su
-  // porcentaje ya incluye IVA; si lo cobra aparte, poner ivaPercent en 19.
+  // Addi no publica su tarifa: es la de nuestro contrato. En el panel de aliados
+  // de Addi (Ecommerce) figura "Tarifa de intermediación 6,50 %", con pago a 30
+  // días de cada venta. El panel no dice si suma IVA; si lo cobra aparte,
+  // poner ivaPercent en 19.
   addi: {
-    percent: 6,
+    percent: 6.5,
     fixedCop: 0,
     ivaPercent: 0,
-    source: "Porcentaje indicado por la tienda (pendiente de confirmar con el contrato de Addi).",
+    source: "Panel de aliados de Addi: tarifa de intermediación 6,50 % (Ecommerce).",
   },
 };
 
