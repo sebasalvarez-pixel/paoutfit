@@ -11,6 +11,7 @@ import {
   nationalShippingCop,
   shippingZoneFor,
 } from "@/lib/shipping";
+import { PAYMENT_FEE_PERCENT, paymentFeeCop, type PaymentMethodKey } from "@/lib/payment-fees";
 
 /**
  * Subtotal, envío y total, más el aviso de cuánto falta para envío gratis.
@@ -25,18 +26,25 @@ export function OrderTotals({
   showTotal = true,
   city,
   department,
+  paymentMethod,
 }: {
   subtotalCop: number;
   international?: boolean;
   showTotal?: boolean;
   city?: string;
   department?: string;
+  /** Método elegido; sin él (carrito) no se suma el costo del pago, solo se avisa. */
+  paymentMethod?: PaymentMethodKey;
 }) {
   const { t } = useLocale();
 
   const shippingCop = nationalShippingCop(subtotalCop, city, department);
   const missing = amountToFreeShippingCop(subtotalCop);
   const progress = Math.min(100, (subtotalCop / FREE_SHIPPING_THRESHOLD_COP) * 100);
+  const feeCop =
+    !international && paymentMethod
+      ? paymentFeeCop(paymentMethod, subtotalCop + shippingCop)
+      : 0;
   const zoneKnown = shippingZoneFor(city, department) !== "national" || Boolean(city || department);
 
   return (
@@ -74,6 +82,15 @@ export function OrderTotals({
             </p>
           )}
 
+          {paymentMethod && feeCop > 0 && (
+            <div className="flex justify-between">
+              <span>
+                {t("ship_costo_pago")} ({PAYMENT_FEE_PERCENT[paymentMethod]}%)
+              </span>
+              <span>{formatCop(feeCop)}</span>
+            </div>
+          )}
+
           {missing > 0 ? (
             <div className="pt-1">
               <p className="text-xs text-ink/70">
@@ -100,12 +117,17 @@ export function OrderTotals({
           <span className="text-rose">
             {international
               ? formatCop(subtotalCop)
-              : formatCop(subtotalCop + shippingCop)}
+              : formatCop(subtotalCop + shippingCop + feeCop)}
           </span>
         </div>
       )}
       {showTotal && international && (
         <p className="text-xs text-ink/60">{t("ship_total_mas_envio")}</p>
+      )}
+      {showTotal && !international && !paymentMethod && (
+        <p className="text-xs text-ink/60">
+          {t("ship_costo_pago_nota")} {PAYMENT_FEE_PERCENT.wompi}% · Addi {PAYMENT_FEE_PERCENT.addi}%.
+        </p>
       )}
     </div>
   );

@@ -34,6 +34,7 @@ export function NewOrderNotification({
   subtotalCop,
   discountCop = 0,
   shippingCop = 0,
+  paymentFeeCop = 0,
   totalCop,
   addressLines = [],
   paymentMethod,
@@ -48,6 +49,7 @@ export function NewOrderNotification({
   subtotalCop?: number;
   discountCop?: number;
   shippingCop?: number;
+  paymentFeeCop?: number;
   totalCop: number;
   addressLines?: string[];
   paymentMethod?: string;
@@ -147,6 +149,9 @@ export function NewOrderNotification({
               label="Envío"
               value={shippingCop === 0 ? "Gratis" : formatCop(shippingCop)}
             />
+            {paymentFeeCop > 0 && (
+              <AmountRow label="Costo del medio de pago" value={formatCop(paymentFeeCop)} />
+            )}
             <AmountRow label="Total pagado" value={formatCop(totalCop)} bold />
           </Section>
 

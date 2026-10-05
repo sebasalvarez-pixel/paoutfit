@@ -187,6 +187,7 @@ export function ShippingQuoteReady({
   subtotalCop,
   discountCop,
   shippingCop,
+  paymentFeeCop = 0,
   totalCop,
   payUrl,
   locale,
@@ -197,6 +198,7 @@ export function ShippingQuoteReady({
   subtotalCop: number;
   discountCop: number;
   shippingCop: number;
+  paymentFeeCop?: number;
   totalCop: number;
   payUrl: string;
   locale: Locale;
@@ -227,6 +229,9 @@ export function ShippingQuoteReady({
         <AmountRow label={en ? "Discount" : "Descuento"} value={`-${formatCop(discountCop)}`} />
       )}
       <AmountRow label={en ? "International shipping (DHL)" : "Envío internacional (DHL)"} value={formatCop(shippingCop)} />
+      {paymentFeeCop > 0 && (
+        <AmountRow label={en ? "Payment processing fee" : "Costo del medio de pago"} value={formatCop(paymentFeeCop)} />
+      )}
       <AmountRow label="Total" value={formatCop(totalCop)} bold />
       <Section style={{ textAlign: "center" as const, marginTop: "24px" }}>
         <Button

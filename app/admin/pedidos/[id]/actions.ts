@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { applyOrderStatusTransition } from "@/lib/orders";
 import { sendEmail } from "@/lib/resend";
+import { paymentFeeCop } from "@/lib/payment-fees";
 import { ShippingQuoteReady } from "@/emails/InternationalEmails";
 import type { OrderStatus } from "@/app/generated/prisma/client";
 
@@ -23,10 +24,12 @@ export async function setInternationalShipping(orderId: string, formData: FormDa
   });
   if (!order || !order.isInternational || order.status !== "pending") return;
 
-  const totalCop = order.subtotalCop - order.discountCop + shippingCop;
+  // El pago internacional siempre es por Wompi: se suma su costo (3 %).
+  const feeCop = paymentFeeCop("wompi", order.subtotalCop - order.discountCop + shippingCop);
+  const totalCop = order.subtotalCop - order.discountCop + shippingCop + feeCop;
   await prisma.order.update({
     where: { id: order.id },
-    data: { shippingCop, totalCop, shippingQuotePending: false },
+    data: { shippingCop, paymentFeeCop: feeCop, totalCop, shippingQuotePending: false },
   });
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -50,6 +53,7 @@ export async function setInternationalShipping(orderId: string, formData: FormDa
       subtotalCop: order.subtotalCop,
       discountCop: order.discountCop,
       shippingCop,
+      paymentFeeCop: feeCop,
       totalCop,
       payUrl: `${appUrl}/pagar/${order.orderNumber}?lang=${locale}`,
       locale,

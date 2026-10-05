@@ -30,6 +30,7 @@ const TEXT = {
     subtotal: "Subtotal",
     discount: "Descuento",
     shipping: "Envío",
+    paymentFee: "Costo del medio de pago",
     free: "Gratis",
     total: "Total",
     shipTo: "Lo enviaremos a",
@@ -45,6 +46,7 @@ const TEXT = {
     subtotal: "Subtotal",
     discount: "Discount",
     shipping: "Shipping",
+    paymentFee: "Payment processing fee",
     free: "Free",
     total: "Total",
     shipTo: "We'll ship it to",
@@ -62,6 +64,7 @@ export function OrderConfirmation({
   subtotalCop,
   discountCop = 0,
   shippingCop = 0,
+  paymentFeeCop = 0,
   totalCop,
   addressLines = [],
   trackUrl,
@@ -73,6 +76,7 @@ export function OrderConfirmation({
   subtotalCop?: number;
   discountCop?: number;
   shippingCop?: number;
+  paymentFeeCop?: number;
   totalCop: number;
   addressLines?: string[];
   trackUrl?: string;
@@ -156,6 +160,9 @@ export function OrderConfirmation({
               label={t.shipping}
               value={shippingCop === 0 ? t.free : formatCop(shippingCop)}
             />
+            {paymentFeeCop > 0 && (
+              <AmountRow label={t.paymentFee} value={formatCop(paymentFeeCop)} />
+            )}
             <AmountRow label={t.total} value={formatCop(totalCop)} bold />
           </Section>
 

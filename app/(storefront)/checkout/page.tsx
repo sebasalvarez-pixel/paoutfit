@@ -523,6 +523,7 @@ export default function CheckoutPage() {
             international={isInternational}
             city={city}
             department={department}
+            paymentMethod={effectiveMethod}
           />
         </div>
         {hasDiscountCode && (

@@ -186,6 +186,12 @@ export default async function AdminOrderDetailPage({
                   : formatCop(order.shippingCop)}
             </span>
           </div>
+          {order.paymentFeeCop > 0 && (
+            <div className="flex justify-between text-ink/60">
+              <span>Costo del medio de pago ({order.paymentProvider === "addi" ? "Addi" : "Wompi"})</span>
+              <span>{formatCop(order.paymentFeeCop)}</span>
+            </div>
+          )}
           <div className="flex justify-between font-semibold text-ink pt-1">
             <span>Total</span>
             <span>{formatCop(order.totalCop)}</span>

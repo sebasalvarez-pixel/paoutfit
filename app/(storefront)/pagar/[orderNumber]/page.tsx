@@ -89,6 +89,12 @@ export default async function PayOrderPage({
           <span>{t(locale, "pay_envio_intl")}</span>
           <span>{order.shippingQuotePending ? "—" : formatCop(order.shippingCop)}</span>
         </div>
+        {order.paymentFeeCop > 0 && (
+          <div className="flex justify-between text-ink/70">
+            <span>{t(locale, "ship_costo_pago")}</span>
+            <span>{formatCop(order.paymentFeeCop)}</span>
+          </div>
+        )}
         <div className="flex justify-between font-semibold text-base pt-2 border-t border-ink/10">
           <span>{t(locale, "track_total")}</span>
           <span className="text-rose">{formatCop(order.totalCop)}</span>

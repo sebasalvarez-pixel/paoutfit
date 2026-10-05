@@ -17,6 +17,7 @@ import {
 } from "@/emails/InternationalEmails";
 
 import { nationalShippingCop } from "@/lib/shipping";
+import { paymentFeeCop } from "@/lib/payment-fees";
 
 const checkoutSchema = z
   .object({
@@ -178,7 +179,13 @@ export async function createOrder(
   const shippingCop = isInternational
     ? 0
     : nationalShippingCop(subtotalCop - discountCop, data.city, data.department);
-  const totalCop = subtotalCop - discountCop + shippingCop;
+  // Costo del medio de pago (Wompi 3 %, Addi 6 %), calculado aquí en el
+  // servidor: es lo que realmente se cobra, igual a lo que se mostró.
+  // En internacional se agrega cuando se cotiza el envío (el total aún no existe).
+  const paymentFeeAmount = isInternational
+    ? 0
+    : paymentFeeCop(data.paymentMethod, subtotalCop - discountCop + shippingCop);
+  const totalCop = subtotalCop - discountCop + shippingCop + paymentFeeAmount;
 
   const attribution = await readAttribution();
   const orderNumber = generateOrderNumber();
@@ -206,6 +213,7 @@ export async function createOrder(
       subtotalCop,
       discountCop,
       shippingCop,
+      paymentFeeCop: paymentFeeAmount,
       totalCop,
       discountCodeId,
       paymentProvider: data.paymentMethod,
@@ -287,12 +295,19 @@ export async function createOrder(
       orderNumber: order.orderNumber,
       totalCop,
       shippingCop,
-      items: orderItemsData.map((item) => ({
-        sku: item.sku,
-        name: item.productTitle,
-        quantity: item.quantity,
-        unitPriceCop: item.unitPriceCop,
-      })),
+      items: [
+        ...orderItemsData.map((item) => ({
+          sku: item.sku,
+          name: item.productTitle,
+          quantity: item.quantity,
+          unitPriceCop: item.unitPriceCop,
+        })),
+        // El costo del servicio Addi va como una línea aparte para que ítems +
+        // envío se acerquen al total que se le cobra al cliente.
+        ...(paymentFeeAmount > 0
+          ? [{ sku: "COSTO-ADDI", name: "Costo del servicio Addi", quantity: 1, unitPriceCop: paymentFeeAmount }]
+          : []),
+      ],
       customer: {
         idNumber: data.customerIdNumber!,
         fullName: data.customerName,
