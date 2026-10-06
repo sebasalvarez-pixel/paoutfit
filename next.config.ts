@@ -20,6 +20,14 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  experimental: {
+    // Turbopack guarda en su caché de compilación (.next/cache) los valores de
+    // las variables de entorno que lee mientras compila, incluidas las claves
+    // secretas. Esa caché no se publica, pero el escáner de secretos de
+    // Netlify la ve y cancela el despliegue ("Exposed secrets detected").
+    // Sin caché de compilación en disco, ningún secreto queda escrito ahí.
+    turbopackFileSystemCacheForBuild: false,
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
